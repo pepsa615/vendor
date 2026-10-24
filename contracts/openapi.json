@@ -1,0 +1,2402 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/auth/register": {
+      "post": {
+        "operationId": "AuthController_register_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/verify-email": {
+      "post": {
+        "operationId": "AuthController_verify_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/resend-code": {
+      "post": {
+        "operationId": "AuthController_resend_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "AuthController_login_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout_v1",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "AuthController_me_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "operationId": "AuthController_changePassword_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/invitations/complete": {
+      "post": {
+        "operationId": "AuthController_complete_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/.well-known/jwks.json": {
+      "get": {
+        "operationId": "AuthController_jwks_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/onboarding/application": {
+      "get": {
+        "operationId": "OnboardingController_get_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Onboarding"
+        ]
+      }
+    },
+    "/api/v1/onboarding/personal": {
+      "put": {
+        "operationId": "OnboardingController_personal_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Onboarding"
+        ]
+      }
+    },
+    "/api/v1/onboarding/business": {
+      "put": {
+        "operationId": "OnboardingController_business_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Onboarding"
+        ]
+      }
+    },
+    "/api/v1/onboarding/directors": {
+      "put": {
+        "operationId": "OnboardingController_directors_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Onboarding"
+        ]
+      }
+    },
+    "/api/v1/onboarding/documents": {
+      "post": {
+        "operationId": "OnboardingController_document_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Onboarding"
+        ]
+      }
+    },
+    "/api/v1/onboarding/submit": {
+      "post": {
+        "operationId": "OnboardingController_submit_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Onboarding"
+        ]
+      }
+    },
+    "/api/v1/vendor/profile": {
+      "get": {
+        "operationId": "ProfileController_get_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VendorProfileResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Vendor profile"
+        ]
+      },
+      "patch": {
+        "operationId": "ProfileController_update_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Vendor profile"
+        ]
+      }
+    },
+    "/api/v1/vendor/profile/logo": {
+      "post": {
+        "operationId": "ProfileController_uploadLogo_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Vendor profile"
+        ]
+      }
+    },
+    "/api/v1/roles": {
+      "get": {
+        "operationId": "RolesController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Roles"
+        ]
+      },
+      "post": {
+        "operationId": "RolesController_create_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Roles"
+        ]
+      }
+    },
+    "/api/v1/roles/{id}": {
+      "put": {
+        "operationId": "RolesController_update_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Roles"
+        ]
+      },
+      "delete": {
+        "operationId": "RolesController_remove_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Roles"
+        ]
+      }
+    },
+    "/api/v1/staff": {
+      "get": {
+        "operationId": "StaffController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Staff"
+        ]
+      }
+    },
+    "/api/v1/staff/invitations": {
+      "post": {
+        "operationId": "StaffController_invite_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Staff"
+        ]
+      }
+    },
+    "/api/v1/staff/{id}/disable": {
+      "patch": {
+        "operationId": "StaffController_disable_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Staff"
+        ]
+      }
+    },
+    "/api/v1/audit-events": {
+      "get": {
+        "operationId": "AuditController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Audit"
+        ]
+      }
+    },
+    "/internal/admin/v1/capabilities": {
+      "get": {
+        "operationId": "AdminReviewController_capabilities",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin review"
+        ]
+      }
+    },
+    "/internal/admin/v1/applications": {
+      "get": {
+        "operationId": "AdminReviewController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin review"
+        ]
+      }
+    },
+    "/internal/admin/v1/applications/{id}": {
+      "get": {
+        "operationId": "AdminReviewController_detail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin review"
+        ]
+      }
+    },
+    "/internal/admin/v1/applications/{id}/documents/{documentId}": {
+      "get": {
+        "operationId": "AdminReviewController_document",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin review"
+        ]
+      }
+    },
+    "/internal/admin/v1/applications/{id}/review": {
+      "post": {
+        "operationId": "AdminReviewController_decide",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin review"
+        ]
+      }
+    },
+    "/api/v1/people/customers": {
+      "get": {
+        "operationId": "CustomersController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Customers"
+        ]
+      },
+      "post": {
+        "operationId": "CustomersController_create_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Customers"
+        ]
+      }
+    },
+    "/api/v1/people/dispatchers": {
+      "get": {
+        "operationId": "DispatchersController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatchers"
+        ]
+      },
+      "post": {
+        "operationId": "DispatchersController_create_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatchers"
+        ]
+      }
+    },
+    "/api/v1/people/dispatchers/{id}": {
+      "get": {
+        "operationId": "DispatchersController_detail_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatchers"
+        ]
+      },
+      "patch": {
+        "operationId": "DispatchersController_update_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatchers"
+        ]
+      }
+    },
+    "/api/v1/people/dispatchers/{id}/documents": {
+      "post": {
+        "operationId": "DispatchersController_document_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatchers"
+        ]
+      }
+    },
+    "/api/v1/people/dispatchers/{id}/submit": {
+      "post": {
+        "operationId": "DispatchersController_submit_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatchers"
+        ]
+      }
+    },
+    "/api/v1/people/dispatchers/{id}/availability": {
+      "patch": {
+        "operationId": "DispatchersController_availability_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatchers"
+        ]
+      }
+    },
+    "/internal/admin/v1/dispatchers/reviews": {
+      "get": {
+        "operationId": "InternalDispatcherReviewController_queue",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin dispatcher review"
+        ]
+      }
+    },
+    "/internal/admin/v1/dispatchers/reviews/{revisionId}": {
+      "get": {
+        "operationId": "InternalDispatcherReviewController_detail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin dispatcher review"
+        ]
+      },
+      "post": {
+        "operationId": "InternalDispatcherReviewController_review",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin dispatcher review"
+        ]
+      }
+    },
+    "/internal/admin/v1/dispatchers/reviews/{revisionId}/documents/{documentId}": {
+      "get": {
+        "operationId": "InternalDispatcherReviewController_document",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin dispatcher review"
+        ]
+      }
+    },
+    "/api/v1/public/places/autocomplete": {
+      "get": {
+        "operationId": "PublicPlacesController_autocomplete_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Public ordering"
+        ]
+      }
+    },
+    "/api/v1/public/places/details": {
+      "get": {
+        "operationId": "PublicPlacesController_details_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Public ordering"
+        ]
+      }
+    },
+    "/api/v1/pricing": {
+      "get": {
+        "operationId": "PricingController_current_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Pricing"
+        ]
+      },
+      "put": {
+        "operationId": "PricingController_update_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Pricing"
+        ]
+      }
+    },
+    "/api/v1/pricing/quotes": {
+      "post": {
+        "operationId": "PricingController_quote_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Pricing"
+        ]
+      }
+    },
+    "/api/v1/public/vendors/{slug}": {
+      "get": {
+        "operationId": "PublicPricingController_vendor_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Public ordering"
+        ]
+      }
+    },
+    "/api/v1/public/vendors/{slug}/quotes": {
+      "post": {
+        "operationId": "PublicPricingController_quote_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Public ordering"
+        ]
+      }
+    },
+    "/internal/admin/v1/vendors/{vendorId}/payment-account": {
+      "post": {
+        "operationId": "InternalPaymentAccountController_paymentAccount",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin vendor payment account"
+        ]
+      }
+    },
+    "/api/v1/orders": {
+      "get": {
+        "operationId": "OrdersController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Orders"
+        ]
+      },
+      "post": {
+        "operationId": "OrdersController_create_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/api/v1/orders/{id}": {
+      "get": {
+        "operationId": "OrdersController_detail_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/api/v1/orders/{id}/ready": {
+      "post": {
+        "operationId": "OrdersController_ready_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/api/v1/orders/{id}/accept": {
+      "post": {
+        "operationId": "OrdersController_accept_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/api/v1/orders/{id}/cancel": {
+      "post": {
+        "operationId": "OrdersController_cancel_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/api/v1/public/vendors/{slug}/orders": {
+      "post": {
+        "operationId": "PublicOrdersController_create_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Public ordering"
+        ]
+      }
+    },
+    "/api/v1/public/orders/{reference}": {
+      "get": {
+        "operationId": "PublicOrdersController_status_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Public ordering"
+        ]
+      }
+    },
+    "/api/v1/webhooks/payment": {
+      "post": {
+        "operationId": "PaymentWebhookController_handle_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Payment webhook"
+        ]
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "NotificationsController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/unread-count": {
+      "get": {
+        "operationId": "NotificationsController_unread_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/read-all": {
+      "patch": {
+        "operationId": "NotificationsController_readAll_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/{id}/read": {
+      "patch": {
+        "operationId": "NotificationsController_read_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/account/settlement-summary": {
+      "get": {
+        "operationId": "AccountController_summary_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/wallet": {
+      "get": {
+        "operationId": "AccountController_wallet_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/settlements": {
+      "get": {
+        "operationId": "AccountController_entries_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/withdrawals": {
+      "get": {
+        "operationId": "AccountController_withdrawals_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/fees": {
+      "get": {
+        "operationId": "AccountController_fees_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/cash-out": {
+      "post": {
+        "operationId": "AccountController_cashOut_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/wallet/statement": {
+      "get": {
+        "operationId": "AccountController_statement_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/banks": {
+      "get": {
+        "operationId": "AccountController_banks_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/account-enquiry": {
+      "post": {
+        "operationId": "AccountController_enquiry_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/transfers": {
+      "post": {
+        "operationId": "AccountController_transfer_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/vas/catalog": {
+      "get": {
+        "operationId": "AccountController_vasCatalog_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/vas/validate": {
+      "post": {
+        "operationId": "AccountController_validateVas_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/vas/purchases": {
+      "post": {
+        "operationId": "AccountController_vas_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/pin": {
+      "get": {
+        "operationId": "AccountController_pinStatus_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      },
+      "post": {
+        "operationId": "AccountController_setPin_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/pin/verify": {
+      "post": {
+        "operationId": "AccountController_verifyPin_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/pin/reset/request": {
+      "post": {
+        "operationId": "AccountController_requestReset_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/pin/reset": {
+      "post": {
+        "operationId": "AccountController_resetPin_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/manifests/batches/validate": {
+      "post": {
+        "operationId": "ManifestsController_validate_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
+    "/api/v1/manifests/batches": {
+      "post": {
+        "operationId": "ManifestsController_createBatch_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      },
+      "get": {
+        "operationId": "ManifestsController_batches_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
+    "/api/v1/manifests/batches/{id}": {
+      "get": {
+        "operationId": "ManifestsController_batch_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
+    "/api/v1/manifests/vendors": {
+      "get": {
+        "operationId": "ManifestsController_vendors_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
+    "/api/v1/manifests/preview": {
+      "post": {
+        "operationId": "ManifestsController_preview_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
+    "/api/v1/manifests": {
+      "post": {
+        "operationId": "ManifestsController_create_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      },
+      "get": {
+        "operationId": "ManifestsController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
+    "/api/v1/manifests/{id}": {
+      "get": {
+        "operationId": "ManifestsController_detail_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
+    "/api/v1/manifests/{id}/revisions/preview": {
+      "post": {
+        "operationId": "ManifestsController_previewRevision_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
+    "/api/v1/manifests/{id}/revisions": {
+      "post": {
+        "operationId": "ManifestsController_revise_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
+    "/api/v1/manifests/{id}/respond": {
+      "post": {
+        "operationId": "ManifestsController_respond_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
+    "/api/v1/manifests/{id}/status": {
+      "post": {
+        "operationId": "ManifestsController_transition_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
+    "/api/v1/manifests/{id}/waybill": {
+      "get": {
+        "operationId": "ManifestsController_waybill_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
+    "/api/v1/dispatches/preview": {
+      "post": {
+        "operationId": "DispatchController_preview_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "mode"
+                ],
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "OWN_FLEET",
+                      "GENERAL_POOL"
+                    ]
+                  },
+                  "orderId": {
+                    "type": "string"
+                  },
+                  "batchId": {
+                    "type": "string"
+                  },
+                  "dispatcherId": {
+                    "type": "string"
+                  },
+                  "mobilityMethod": {
+                    "type": "string",
+                    "enum": [
+                      "bicycle",
+                      "motorcycle",
+                      "tricycle",
+                      "car",
+                      "van",
+                      "truck",
+                      "large_truck"
+                    ],
+                    "description": "Required only when mode is GENERAL_POOL."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatch"
+        ]
+      }
+    },
+    "/api/v1/dispatches": {
+      "post": {
+        "operationId": "DispatchController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "previewToken"
+                ],
+                "properties": {
+                  "previewToken": {
+                    "type": "string"
+                  },
+                  "payoutAmountMinor": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "stopPayouts": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "orderId",
+                        "payoutAmountMinor"
+                      ],
+                      "properties": {
+                        "orderId": {
+                          "type": "string"
+                        },
+                        "payoutAmountMinor": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatch"
+        ]
+      },
+      "get": {
+        "operationId": "DispatchController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatch"
+        ]
+      }
+    },
+    "/api/v1/dispatches/summary": {
+      "get": {
+        "operationId": "DispatchController_summary_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatch"
+        ]
+      }
+    },
+    "/api/v1/dispatches/{id}": {
+      "get": {
+        "operationId": "DispatchController_detail_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatch"
+        ]
+      }
+    },
+    "/api/v1/dispatches/{id}/tracking": {
+      "get": {
+        "operationId": "DispatchController_tracking_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatch"
+        ]
+      }
+    },
+    "/api/v1/dispatches/{id}/open-dispatch-price": {
+      "post": {
+        "operationId": "DispatchController_openDispatchPrice_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatch"
+        ]
+      }
+    },
+    "/api/v1/dispatches/{id}/publish-open-dispatch": {
+      "post": {
+        "operationId": "DispatchController_publishOpenDispatch_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatch"
+        ]
+      }
+    },
+    "/api/v1/dispatches/{id}/cancel": {
+      "post": {
+        "operationId": "DispatchController_cancel_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatch"
+        ]
+      }
+    },
+    "/api/v1/webhooks/dispatch": {
+      "post": {
+        "operationId": "DispatchWebhookController_event_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Dispatch provider webhook"
+        ]
+      }
+    },
+    "/internal/admin/v1/fees/policies": {
+      "get": {
+        "operationId": "FeesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Fees"
+        ]
+      },
+      "post": {
+        "operationId": "FeesController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Fees"
+        ]
+      }
+    },
+    "/internal/admin/v1/fees/policies/{id}/activate": {
+      "post": {
+        "operationId": "FeesController_activate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Fees"
+        ]
+      }
+    },
+    "/internal/admin/v1/fees/simulate": {
+      "post": {
+        "operationId": "FeesController_simulate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Fees"
+        ]
+      }
+    },
+    "/api/v1/dashboard": {
+      "get": {
+        "operationId": "ReportingController_dashboard_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reporting"
+        ]
+      }
+    },
+    "/api/v1/reports/operations": {
+      "get": {
+        "operationId": "ReportingController_operations_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reporting"
+        ]
+      }
+    },
+    "/api/v1/reports/operations.csv": {
+      "get": {
+        "operationId": "ReportingController_operationsCsv_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reporting"
+        ]
+      }
+    },
+    "/api/v1/reports/settlements": {
+      "get": {
+        "operationId": "ReportingController_settlements_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reporting"
+        ]
+      }
+    },
+    "/api/v1/reports/settlements.csv": {
+      "get": {
+        "operationId": "ReportingController_settlementsCsv_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reporting"
+        ]
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "operationId": "ReportingController_search_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reporting"
+        ]
+      }
+    },
+    "/internal/admin/v1/health": {
+      "get": {
+        "operationId": "VendorAdminController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "VendorAdmin"
+        ]
+      }
+    },
+    "/internal/admin/v1/platform-capabilities": {
+      "get": {
+        "operationId": "VendorAdminController_capabilities",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "VendorAdmin"
+        ]
+      }
+    },
+    "/internal/admin/v1/operations/{operation}": {
+      "get": {
+        "operationId": "VendorAdminController_read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "VendorAdmin"
+        ]
+      },
+      "post": {
+        "operationId": "VendorAdminController_mutate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "VendorAdmin"
+        ]
+      }
+    },
+    "/api/v1/health/live": {
+      "get": {
+        "operationId": "HealthController_live_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Process liveness",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "operationId": "HealthController_ready_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Dependency readiness",
+        "tags": [
+          "health"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Pepsa Vendor API",
+    "description": "",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "PublicOrderLinkDto": {
+        "type": "object",
+        "properties": {
+          "publicSlug": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "VENDOR_NOT_APPROVED",
+                "PRICING_NOT_CONFIGURED",
+                "PAYMENT_NOT_READY"
+              ]
+            }
+          }
+        },
+        "required": [
+          "publicSlug",
+          "path",
+          "enabled",
+          "blockers"
+        ]
+      },
+      "VendorProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "INDIVIDUAL",
+              "COMPANY"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "businessName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "tagline": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "logoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "rejectionNotes": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true
+          },
+          "publicOrder": {
+            "$ref": "#/components/schemas/PublicOrderLinkDto"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "status",
+          "businessName",
+          "email",
+          "phone",
+          "publicOrder"
+        ]
+      }
+    }
+  }
+}
