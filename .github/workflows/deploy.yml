@@ -1,0 +1,68 @@
+name: Deploy
+
+on:
+  push:
+    branches: [staging, main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to deploy
+        required: true
+        type: choice
+        options: [staging, production]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-staging:
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/staging') ||
+      (github.event_name == 'workflow_dispatch' && inputs.environment == 'staging')
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: deploy-vendor-frontend-staging
+      cancel-in-progress: false
+    steps:
+      - name: Deploy vendor frontend to staging
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stop: true
+          command_timeout: 20m
+          script: |
+            set -euo pipefail
+            deploy_root="${HOME}/var/www/vendor-frontend-staging"
+            cd "$deploy_root"
+            git fetch origin staging
+            git reset --hard origin/staging
+            PEPSA_STATIC_ROOT="$deploy_root" bash deploy/scripts/remote-deploy.sh
+
+  deploy-production:
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && inputs.environment == 'production')
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-vendor-frontend-production
+      cancel-in-progress: false
+    steps:
+      - name: Deploy vendor frontend to production
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stop: true
+          command_timeout: 20m
+          script: |
+            set -euo pipefail
+            deploy_root="${HOME}/var/www/vendor-frontend-production"
+            cd "$deploy_root"
+            git fetch origin main
+            git reset --hard origin/main
+            PEPSA_STATIC_ROOT="$deploy_root" bash deploy/scripts/remote-deploy.sh
