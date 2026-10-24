@@ -24,6 +24,27 @@ if ! command -v pnpm >/dev/null 2>&1; then
   corepack prepare pnpm@12.4.2 --activate
 fi
 
+mkdir -p shared
+if [[ -f shared/.env ]]; then
+  ln -sfn shared/.env .env
+fi
+
+if [[ -f .env ]]; then
+  set -a
+  source .env
+  set +a
+fi
+
+if [[ -z "${VITE_API_URL:-}" ]]; then
+  if [[ "$deploy_root" == *staging* ]]; then
+    export VITE_API_URL="https://vendorsandbox-api.pepsa.co/api/v1"
+  else
+    export VITE_API_URL="https://vendor-api.pepsa.co/api/v1"
+  fi
+fi
+
+echo "Building vendor frontend with VITE_API_URL=$VITE_API_URL"
+
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=1024}"
 pnpm install --frozen-lockfile
 
