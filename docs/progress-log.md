@@ -181,3 +181,10 @@ Append entries; never rewrite historical evidence.
 - Added clipboard copy, native device sharing with clipboard fallback, WhatsApp sharing, a locally rendered QR code, and public-page preview actions.
 - Sharing remains disabled with explicit remediation when vendor approval, the four-tier pricing configuration, or Pepsa Payment provisioning is incomplete.
 - Regenerated the frontend OpenAPI contract and added component coverage for both ready and blocked states. Frontend `pnpm verify` passed with governance, contract, typecheck, lint, 12 tests, production build, 40-chunk bundle budget, and formatting.
+
+## 2026-10-25 — Account visibility and BVN-free onboarding
+
+- Replaced the conflicting dark wallet-card treatment with semantic panel, foreground and muted tokens so balances and SVA details remain visible.
+- Removed BVN inputs from individual and director onboarding forms and refreshed the generated Vendor API contract.
+- Replaced the under-review X-circle with a green check-circle while retaining the distinct correction-required state.
+- Frontend typecheck and all 14 tests passed. The Admin Vendor review screens also passed typecheck and all 5 component tests.

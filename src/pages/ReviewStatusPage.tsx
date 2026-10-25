@@ -1,4 +1,4 @@
-import { CircleX, FilePenLine } from "lucide-react";
+import { CheckCircle2, FilePenLine } from "lucide-react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/index.ts";
 import { useSession } from "../contexts/SessionContext.tsx";
@@ -15,7 +15,7 @@ export default function ReviewStatusPage() {
         {rejected ? (
           <FilePenLine className="mx-auto size-20 text-brand" />
         ) : (
-          <CircleX className="mx-auto size-20 text-brand" />
+          <CheckCircle2 className="mx-auto size-20 text-emerald-600" />
         )}
         <h1 className="mt-6 text-2xl font-bold tracking-tight">
           {rejected ? "Corrections required" : "Your account is under review"}

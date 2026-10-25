@@ -2080,6 +2080,48 @@
         ]
       }
     },
+    "/internal/admin/v1/fees/policies/{id}/retire": {
+      "post": {
+        "operationId": "FeesController_retire",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Fees"
+        ]
+      }
+    },
+    "/internal/admin/v1/fees/assessments/{id}/adjust": {
+      "post": {
+        "operationId": "FeesController_adjust",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Fees"
+        ]
+      }
+    },
+    "/internal/admin/v1/fees/report": {
+      "get": {
+        "operationId": "FeesController_report",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Fees"
+        ]
+      }
+    },
     "/internal/admin/v1/fees/simulate": {
       "post": {
         "operationId": "FeesController_simulate",

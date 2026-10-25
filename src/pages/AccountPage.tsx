@@ -378,21 +378,29 @@ function WalletView() {
   return (
     <div className="mt-6 space-y-6">
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <Card className="bg-neutral-950 text-white">
-          <p className="text-sm text-neutral-300">Wallet balance</p>
-          <p className="mt-3 text-3xl font-bold">{moneyString(w.balance)}</p>
+        <Card>
+          <p className="text-sm text-muted">Wallet balance</p>
+          <p className="mt-3 text-3xl font-bold text-foreground">
+            {moneyString(w.balance)}
+          </p>
           <div className="mt-8 grid grid-cols-2 gap-3 text-sm">
             <div>
-              <p className="text-neutral-400">Account number</p>
-              <p className="font-semibold">{w.account.account_number}</p>
+              <p className="text-muted">Account number</p>
+              <p className="font-semibold text-foreground">
+                {w.account.account_number}
+              </p>
             </div>
             <div>
-              <p className="text-neutral-400">Bank</p>
-              <p className="font-semibold">{w.account.bank_name}</p>
+              <p className="text-muted">Bank</p>
+              <p className="font-semibold text-foreground">
+                {w.account.bank_name}
+              </p>
             </div>
             <div className="col-span-2">
-              <p className="text-neutral-400">Account name</p>
-              <p className="font-semibold">{w.account.account_name}</p>
+              <p className="text-muted">Account name</p>
+              <p className="font-semibold text-foreground">
+                {w.account.account_name}
+              </p>
             </div>
           </div>
         </Card>

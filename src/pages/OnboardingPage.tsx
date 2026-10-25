@@ -53,7 +53,6 @@ type Director = {
   gender: string;
   dateOfBirth: string;
   identityNumber: string;
-  bvn: string;
   phone: string;
   homeAddress: string;
   state: string;
@@ -82,7 +81,6 @@ const personalFields = [
   ["gender", "Gender"],
   ["dateOfBirth", "Date of birth"],
   ["identityNumber", "NIN / Identity number"],
-  ["bvn", "Bank Verification Number (BVN)"],
   ["phone", "Personal Phone Number"],
   ["homeAddress", "Home address"],
   ["state", "State"],
@@ -284,7 +282,6 @@ function DetailsForm({
                 "firstName",
                 "lastName",
                 "identityNumber",
-                "bvn",
                 "phone",
                 "homeAddress",
               ].includes(name)
@@ -365,7 +362,6 @@ function emptyDirector(): Director {
     gender: "MALE",
     dateOfBirth: "",
     identityNumber: "",
-    bvn: "",
     phone: "",
     homeAddress: "",
     state: "",
@@ -415,7 +411,6 @@ function DirectorsForm({
               gender: item.gender || "MALE",
               dateOfBirth: item.dateOfBirth,
               identityNumber: String(data.get(`${i}.identityNumber`)),
-              bvn: String(data.get(`${i}.bvn`)),
               phone: String(data.get(`${i}.phone`)),
               homeAddress: String(data.get(`${i}.homeAddress`)),
               state: item.state,
