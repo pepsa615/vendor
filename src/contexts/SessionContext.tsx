@@ -14,6 +14,7 @@ export interface VendorContext {
   id: string;
   businessName: string;
   type: "INDIVIDUAL" | "COMPANY";
+  phone?: string;
   status:
     | "EMAIL_PENDING"
     | "IN_PROGRESS"

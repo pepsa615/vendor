@@ -165,6 +165,7 @@ export default function OnboardingPage() {
         <DetailsForm
           company={company}
           data={(company ? app.businessData : app.personalData) ?? {}}
+          defaultPhone={session.vendor.phone}
           loading={save.isPending}
           onSubmit={async (body) => {
             try {
@@ -219,11 +220,13 @@ export default function OnboardingPage() {
 function DetailsForm({
   company,
   data,
+  defaultPhone,
   loading,
   onSubmit,
 }: {
   company: boolean;
   data: Record<string, string>;
+  defaultPhone?: string;
   loading: boolean;
   onSubmit: (body: Record<string, string>) => void;
 }) {
@@ -329,6 +332,43 @@ function DetailsForm({
                 onChange={setDateOfBirth}
                 isRequired
               />
+            ) : name === "phone" ? (
+              <FormField label={label}>
+                <Input
+                  name={name}
+                  type="tel"
+                  defaultValue={data[name] ?? defaultPhone ?? ""}
+                  placeholder="e.g. 08012345678 or +2348012345678"
+                  pattern="^(\+?234|0)?[789][01]\d{8}$|^\+?[1-9]\d{7,14}$"
+                  title="Please enter a valid phone number (e.g. 08012345678 or +2348012345678)"
+                  required
+                />
+              </FormField>
+            ) : name === "identityNumber" ? (
+              <FormField label={label}>
+                <Input
+                  name={name}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={11}
+                  pattern="^\d{11}$"
+                  placeholder="11-digit National Identity Number"
+                  title="National Identity Number must be exactly 11 digits"
+                  defaultValue={data[name] ?? ""}
+                  required
+                />
+              </FormField>
+            ) : name === "homeAddress" || name === "businessAddress" || name === "registeredAddress" ? (
+              <FormField label={label}>
+                <Input
+                  name={name}
+                  type="text"
+                  minLength={5}
+                  placeholder="Street address, building, or suite"
+                  defaultValue={data[name] ?? ""}
+                  required
+                />
+              </FormField>
             ) : (
               <FormField label={label}>
                 <Input
@@ -480,6 +520,43 @@ function DirectorsForm({
                     }
                     isRequired
                   />
+                ) : name === "phone" ? (
+                  <FormField key={name} label={label}>
+                    <Input
+                      name={`${i}.${name}`}
+                      type="tel"
+                      defaultValue={String(item[name as keyof Director] ?? "")}
+                      placeholder="e.g. 08012345678 or +2348012345678"
+                      pattern="^(\+?234|0)?[789][01]\d{8}$|^\+?[1-9]\d{7,14}$"
+                      title="Please enter a valid phone number (e.g. 08012345678 or +2348012345678)"
+                      required
+                    />
+                  </FormField>
+                ) : name === "identityNumber" ? (
+                  <FormField key={name} label={label}>
+                    <Input
+                      name={`${i}.${name}`}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={11}
+                      pattern="^\d{11}$"
+                      placeholder="11-digit National Identity Number"
+                      title="National Identity Number must be exactly 11 digits"
+                      defaultValue={String(item[name as keyof Director] ?? "")}
+                      required
+                    />
+                  </FormField>
+                ) : name === "homeAddress" ? (
+                  <FormField key={name} label={label}>
+                    <Input
+                      name={`${i}.${name}`}
+                      type="text"
+                      minLength={5}
+                      placeholder="Street address, building, or suite"
+                      defaultValue={String(item[name as keyof Director] ?? "")}
+                      required
+                    />
+                  </FormField>
                 ) : (
                   <FormField key={name} label={label}>
                     <Input

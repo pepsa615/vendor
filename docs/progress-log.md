@@ -188,3 +188,9 @@ Append entries; never rewrite historical evidence.
 - Removed BVN inputs from individual and director onboarding forms and refreshed the generated Vendor API contract.
 - Replaced the under-review X-circle with a green check-circle while retaining the distinct correction-required state.
 - Frontend typecheck and all 14 tests passed. The Admin Vendor review screens also passed typecheck and all 5 component tests.
+
+## 2026-10-26 — Type-aware Admin onboarding review
+
+- Admin application review now renders Individual submissions from the collected personal profile and Company submissions from the collected business profile.
+- Empty optional values are omitted instead of producing rows of “Not provided”; company registration data, addresses and director details remain visible when submitted.
+- BVN remains absent from onboarding and review presentation. Admin frontend typecheck and all 5 component tests passed.
