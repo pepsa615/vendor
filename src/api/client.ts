@@ -4,7 +4,25 @@ export interface ApiError {
   requestId: string;
   details?: Record<string, unknown>;
 }
-const baseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api/v1";
+function resolveBaseUrl(): string {
+  if (typeof window !== "undefined" && window.location) {
+    const host = window.location.hostname;
+    if (host === "vendor-sandbox.pepsa.co" || host.includes("sandbox")) {
+      return "https://vendorsandbox-api.pepsa.co/api/v1";
+    }
+    if (
+      host === "vendor.pepsa.co" ||
+      (!host.includes("localhost") &&
+        !host.includes("127.0.0.1") &&
+        host.endsWith("pepsa.co"))
+    ) {
+      return "https://vendor-api.pepsa.co/api/v1";
+    }
+  }
+  return import.meta.env.VITE_API_URL ?? "http://localhost:3000/api/v1";
+}
+
+const baseUrl = resolveBaseUrl();
 let accessToken: string | null = null;
 let refreshPromise: Promise<boolean> | null = null;
 export const setAccessToken = (token: string | null) => {
