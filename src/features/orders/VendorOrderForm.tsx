@@ -7,10 +7,7 @@ import {
   PARCEL_CATEGORY_OPTIONS,
 } from "../../constants/orderOptions.ts";
 import type { CustomerListResponse } from "../people/types.ts";
-import {
-  formatLocationSummary,
-  readLocationFromForm,
-} from "./orderIntake.ts";
+import { formatLocationSummary, readLocationFromForm } from "./orderIntake.ts";
 import type { VendorOrder } from "./types.ts";
 import {
   Alert,
@@ -32,6 +29,13 @@ export function VendorOrderForm({
   const formRef = useRef<HTMLFormElement>(null);
   const [step, setStep] = useState(0);
   const [customerId, setCustomerId] = useState("");
+  const [receiverCustomerId, setReceiverCustomerId] = useState("");
+  const [senderSearch, setSenderSearch] = useState("");
+  const [receiverSearch, setReceiverSearch] = useState("");
+  const [sender, setSender] = useState({ name: "", phone: "", email: "" });
+  const [receiver, setReceiver] = useState({ name: "", phone: "", email: "" });
+  const [saveSender, setSaveSender] = useState(false);
+  const [saveReceiver, setSaveReceiver] = useState(false);
   const [pickupReady, setPickupReady] = useState(false);
   const [deliveryReady, setDeliveryReady] = useState(false);
   const [category, setCategory] = useState("");
@@ -90,7 +94,10 @@ export function VendorOrderForm({
         method: "POST",
         headers: { "idempotency-key": crypto.randomUUID() },
         body: JSON.stringify({
-          customerId: customerId || undefined,
+          senderCustomerId: customerId || undefined,
+          receiverCustomerId: receiverCustomerId || undefined,
+          saveSender: !customerId && saveSender,
+          saveReceiver: !receiverCustomerId && saveReceiver,
           sender: {
             name: value("senderName"),
             phone: value("senderPhone"),
@@ -160,35 +167,178 @@ export function VendorOrderForm({
         title="Customer and contacts"
         copy="Link a saved customer if available, then provide sender and receiver details."
       >
-        <div className="md:col-span-2">
-          <Select
-            label="Existing customer (optional)"
-            placeholder="Create without linking a saved customer"
-            selectedKey={customerId || null}
-            onSelectionChange={(key) => setCustomerId(String(key))}
-            options={(customers.data?.items ?? []).map((customer) => ({
-              key: customer.id,
-              label: customer.name,
-              description: customer.phone,
-            }))}
+        <div>
+          <OrderInput
+            label="Search sender customers"
+            value={senderSearch}
+            onChange={(event) => setSenderSearch(event.target.value)}
+            required={false}
+            placeholder="Search name, phone or email"
           />
+          <Select
+            label="Saved sender (optional)"
+            placeholder="New sender"
+            selectedKey={customerId || null}
+            onSelectionChange={(key) => {
+              const id = String(key);
+              const customer = customers.data?.items.find(
+                (item) => item.id === id,
+              );
+              setCustomerId(customer?.id ?? "");
+              setSender(
+                customer
+                  ? {
+                      name: customer.name,
+                      phone: customer.phone,
+                      email: customer.email ?? "",
+                    }
+                  : { name: "", phone: "", email: "" },
+              );
+            }}
+            options={(customers.data?.items ?? [])
+              .filter((customer) =>
+                `${customer.name} ${customer.phone} ${customer.email ?? ""}`
+                  .toLowerCase()
+                  .includes(senderSearch.toLowerCase()),
+              )
+              .map((customer) => ({
+                key: customer.id,
+                label: customer.name,
+                description: customer.phone,
+              }))}
+          />
+          {customerId && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setCustomerId("");
+                setSender({ name: "", phone: "", email: "" });
+              }}
+            >
+              Use new sender
+            </Button>
+          )}
         </div>
-        <OrderInput name="senderName" label="Sender name" />
-        <OrderInput name="senderPhone" label="Sender phone" type="tel" />
+        <div>
+          <OrderInput
+            label="Search receiver customers"
+            value={receiverSearch}
+            onChange={(event) => setReceiverSearch(event.target.value)}
+            required={false}
+            placeholder="Search name, phone or email"
+          />
+          <Select
+            label="Saved receiver (optional)"
+            placeholder="New receiver"
+            selectedKey={receiverCustomerId || null}
+            onSelectionChange={(key) => {
+              const id = String(key);
+              const customer = customers.data?.items.find(
+                (item) => item.id === id,
+              );
+              setReceiverCustomerId(customer?.id ?? "");
+              setReceiver(
+                customer
+                  ? {
+                      name: customer.name,
+                      phone: customer.phone,
+                      email: customer.email ?? "",
+                    }
+                  : { name: "", phone: "", email: "" },
+              );
+            }}
+            options={(customers.data?.items ?? [])
+              .filter((customer) =>
+                `${customer.name} ${customer.phone} ${customer.email ?? ""}`
+                  .toLowerCase()
+                  .includes(receiverSearch.toLowerCase()),
+              )
+              .map((customer) => ({
+                key: customer.id,
+                label: customer.name,
+                description: customer.phone,
+              }))}
+          />
+          {receiverCustomerId && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setReceiverCustomerId("");
+                setReceiver({ name: "", phone: "", email: "" });
+              }}
+            >
+              Use new receiver
+            </Button>
+          )}
+        </div>
+        <OrderInput
+          name="senderName"
+          label="Sender name"
+          value={sender.name}
+          onChange={(event) =>
+            setSender({ ...sender, name: event.target.value })
+          }
+        />
+        <OrderInput
+          name="senderPhone"
+          label="Sender phone"
+          type="tel"
+          value={sender.phone}
+          onChange={(event) =>
+            setSender({ ...sender, phone: event.target.value })
+          }
+        />
         <OrderInput
           name="senderEmail"
           label="Sender email (optional)"
           type="email"
           required={false}
+          value={sender.email}
+          onChange={(event) =>
+            setSender({ ...sender, email: event.target.value })
+          }
         />
-        <OrderInput name="receiverName" label="Receiver name" />
-        <OrderInput name="receiverPhone" label="Receiver phone" type="tel" />
+        <OrderInput
+          name="receiverName"
+          label="Receiver name"
+          value={receiver.name}
+          onChange={(event) =>
+            setReceiver({ ...receiver, name: event.target.value })
+          }
+        />
+        <OrderInput
+          name="receiverPhone"
+          label="Receiver phone"
+          type="tel"
+          value={receiver.phone}
+          onChange={(event) =>
+            setReceiver({ ...receiver, phone: event.target.value })
+          }
+        />
         <OrderInput
           name="receiverEmail"
           label="Receiver email (optional)"
           type="email"
           required={false}
+          value={receiver.email}
+          onChange={(event) =>
+            setReceiver({ ...receiver, email: event.target.value })
+          }
         />
+        {!customerId && (
+          <Checkbox isSelected={saveSender} onChange={setSaveSender}>
+            Save sender to customers
+          </Checkbox>
+        )}
+        {!receiverCustomerId && (
+          <Checkbox isSelected={saveReceiver} onChange={setSaveReceiver}>
+            Save receiver to customers
+          </Checkbox>
+        )}
       </StepPanel>
 
       <StepPanel

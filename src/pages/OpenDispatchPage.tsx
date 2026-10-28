@@ -1,14 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { parseDate } from "@internationalized/date";
-import { Check, Eye, Plus, Route, Send, Users } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Check,
+  Eye,
+  PackagePlus,
+  Plus,
+  Route,
+  Send,
+  Users,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { apiRequest } from "../api/client.ts";
 import {
   Alert,
   Badge,
   Button,
   Card,
+  Checkbox,
   DatePicker,
   Dropdown,
   EmptyState,
@@ -42,6 +51,7 @@ import type { Page, BatchSummary } from "../features/manifests/types.ts";
 import { formatLocationSummary } from "../features/orders/orderIntake.ts";
 import { VendorOrderForm } from "../features/orders/VendorOrderForm.tsx";
 import { MOBILITY_OPTIONS } from "../constants/orderOptions.ts";
+import { BatchBuilder } from "../features/manifests/BatchBuilder.tsx";
 
 const money = (minor?: number, currency = "NGN") =>
   minor == null
@@ -49,6 +59,8 @@ const money = (minor?: number, currency = "NGN") =>
     : new Intl.NumberFormat("en-NG", { style: "currency", currency }).format(
         minor / 100,
       );
+const batchOpenDispatchEnabled =
+  import.meta.env.VITE_PEPSA_ORDER_BATCH_INTAKE_ENABLED === "true";
 
 export default function OpenDispatchPage() {
   const [params, _setParams] = useSearchParams();
@@ -632,7 +644,9 @@ function AssignmentPanel({
               }}
               options={[
                 { key: "order", label: "Single order" },
-                { key: "batch", label: "Batch" },
+                ...(mode !== "GENERAL_POOL" || batchOpenDispatchEnabled
+                  ? [{ key: "batch", label: "Batch" }]
+                  : []),
                 { key: "create", label: "Create new order" },
               ]}
             />
@@ -1123,9 +1137,10 @@ function AssignmentPanel({
 
 function CustomerOrders() {
   const client = useQueryClient();
-  const navigate = useNavigate();
   const [_params, setParams] = useSearchParams();
   const [creating, setCreating] = useState(false);
+  const [batching, setBatching] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [actionError, setActionError] = useState("");
   const query = useQuery({
     queryKey: ["orders", "customer-orders"],
@@ -1164,6 +1179,20 @@ function CustomerOrders() {
     (order.source === "CUSTOMER_LINK" &&
       order.status === "ACCEPTED" &&
       order.paymentStatus === "PAID");
+  const eligibleIds = useMemo(
+    () =>
+      new Set(
+        (query.data?.items ?? [])
+          .filter(isDispatchReady)
+          .map((order) => order.id),
+      ),
+    [query.data],
+  );
+  useEffect(() => {
+    setSelected(
+      (current) => new Set([...current].filter((id) => eligibleIds.has(id))),
+    );
+  }, [eligibleIds]);
   const assign = (order: VendorOrder, view: "runway-manifest" | "open") =>
     setParams({ view, orderId: order.id });
   const handleAction = (order: VendorOrder, key: string | number) => {
@@ -1171,10 +1200,10 @@ function CustomerOrders() {
     if (key === "reject") reject.mutate(order.id);
     if (key === "runway") assign(order, "runway-manifest");
     if (key === "open") assign(order, "open");
-    if (key === "batch")
-      navigate(
-        `/manifest?view=batching&orderRef=${encodeURIComponent(order.publicReference)}`,
-      );
+    if (key === "batch") {
+      setSelected(new Set([order.id]));
+      setBatching(true);
+    }
   };
   return query.isLoading ? (
     <Skeleton className="mt-6 h-72" />
@@ -1185,7 +1214,14 @@ function CustomerOrders() {
           {actionError}
         </Alert>
       )}
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex justify-end gap-2">
+        <Button
+          variant="secondary"
+          disabled={!selected.size}
+          onClick={() => setBatching(true)}
+        >
+          <PackagePlus className="size-4" /> Create batch ({selected.size})
+        </Button>
         <Button onClick={() => setCreating(true)}>
           <Plus className="size-4" /> Create order
         </Button>
@@ -1194,6 +1230,18 @@ function CustomerOrders() {
         <Table>
           <THead>
             <Tr>
+              <Th>
+                <Checkbox
+                  aria-label="Select all eligible orders"
+                  isSelected={
+                    eligibleIds.size > 0 &&
+                    [...eligibleIds].every((id) => selected.has(id))
+                  }
+                  onChange={(checked) =>
+                    setSelected(checked ? new Set(eligibleIds) : new Set())
+                  }
+                />
+              </Th>
               <Th>Reference</Th>
               <Th>Route</Th>
               <Th>Amount</Th>
@@ -1206,6 +1254,21 @@ function CustomerOrders() {
           <TBody>
             {query.data?.items.map((order: VendorOrder) => (
               <Tr key={order.id}>
+                <Td>
+                  <Checkbox
+                    aria-label={`Select ${order.publicReference}`}
+                    isDisabled={!isDispatchReady(order)}
+                    isSelected={selected.has(order.id)}
+                    onChange={(checked) =>
+                      setSelected((current) => {
+                        const next = new Set(current);
+                        if (checked) next.add(order.id);
+                        else next.delete(order.id);
+                        return next;
+                      })
+                    }
+                  />
+                </Td>
                 <Td className="font-semibold">{order.publicReference}</Td>
                 <Td>
                   {order.pickup.city} → {order.delivery.city}
@@ -1297,6 +1360,12 @@ function CustomerOrders() {
           }}
         />
       </Modal>
+      <BatchBuilder
+        key={[...selected].sort().join("|")}
+        open={batching}
+        onOpenChange={setBatching}
+        initialOrderIds={[...selected]}
+      />
     </div>
   );
 }

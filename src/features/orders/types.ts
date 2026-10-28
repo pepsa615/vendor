@@ -44,6 +44,9 @@ export interface VendorOrder {
   pickup: OrderLocationRecord;
   delivery: OrderLocationRecord;
   checkout?: CheckoutDetails;
+  batchItem?: { batchId: string } | null;
+  manifestItems?: Array<{ id: string }>;
+  dispatchItems?: Array<{ dispatchId: string }>;
   createdAt: string;
 }
 export interface OrderListResponse {

@@ -194,3 +194,12 @@ Append entries; never rewrite historical evidence.
 - Admin application review now renders Individual submissions from the collected personal profile and Company submissions from the collected business profile.
 - Empty optional values are omitted instead of producing rows of “Not provided”; company registration data, addresses and director details remain visible when submitted.
 - BVN remains absent from onboarding and review presentation. Admin frontend typecheck and all 5 component tests passed.
+
+## 2026-10-27 — Visual batch and manifest operations UX
+
+- Replaced paste-only batching with a reusable visual Batch Builder used by Manifest and Customer Orders. It shows order, contacts, route, parcel and date details, supports removal and select-all, and retains reference paste as a secondary path.
+- Added eligible-row selection and Create batch beside Create order; already batched, manifested or dispatched orders are excluded and stale selection is pruned.
+- Added accepted outbound-manifest dispatcher assignment/reassignment, assignment history and guarded Start transit control.
+- Removed Account-page Wallet/Settlement toggles while preserving sidebar/query routes and permissions.
+- Added independent searchable sender/receiver autofill, explicit new-contact controls and optional save-to-customers choices.
+- Pricing boundaries are displayed as half-open ranges with the final maximum inclusive; tier starts are derived and read-only.

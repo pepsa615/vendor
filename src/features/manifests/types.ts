@@ -78,6 +78,21 @@ export interface Manifest {
   destinationVendor: VendorSummary;
   revisions: ManifestRevision[];
   actions?: ManifestAction[];
+  transportAssignments?: Array<{
+    id: string;
+    active: boolean;
+    reason: string;
+    assignedAt: string;
+    endedAt?: string;
+    dispatcherRevision: {
+      firstName: string;
+      lastName: string;
+      phone: string;
+      vehicleType: string;
+      vehicleBrand?: string;
+      plateNumber?: string;
+    };
+  }>;
 }
 export interface Page<T> {
   items: T[];

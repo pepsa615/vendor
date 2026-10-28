@@ -57,7 +57,7 @@ const REPORT_FROM = new Date(Date.now() - 30 * 86_400_000)
   .slice(0, 10);
 const REPORT_TO = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
 export default function AccountPage() {
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const { hasPermission } = useSession();
   const canReadSettlement = hasPermission("settlement.read");
   const canReadWallet = hasPermission("wallet.read");
@@ -84,24 +84,6 @@ export default function AccountPage() {
           <p className="mt-1 text-sm text-muted">
             Earnings remain separate from your spendable Pepsa wallet.
           </p>
-        </div>
-        <div className="flex gap-2">
-          {canReadSettlement && (
-            <Button
-              variant={view === "settlement-ledger" ? "primary" : "secondary"}
-              onClick={() => setParams({ view: "settlement-ledger" })}
-            >
-              Settlement Ledger
-            </Button>
-          )}
-          {canReadWallet && (
-            <Button
-              variant={view === "wallet" ? "primary" : "secondary"}
-              onClick={() => setParams({ view: "wallet" })}
-            >
-              Wallet
-            </Button>
-          )}
         </div>
       </div>
       {view === "wallet" ? <WalletView /> : <SettlementView />}

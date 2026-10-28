@@ -8,7 +8,7 @@ import ManifestPage from "./ManifestPage.tsx";
 describe("ManifestPage", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("validates pasted tracking IDs before enabling immutable batch confirmation", async () => {
+  it("validates selected order details before enabling immutable batch confirmation", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
@@ -24,7 +24,28 @@ describe("ManifestPage", () => {
               previewToken: "preview-token",
               expiresAt: new Date(Date.now() + 60_000).toISOString(),
             }
-          : { items: [], total: 0, page: 1, pageSize: 20 };
+          : url.includes("/orders")
+            ? {
+                items: [
+                  {
+                    id: "11111111-1111-4111-8111-111111111111",
+                    publicReference: "O-READY",
+                    source: "VENDOR_DIRECT",
+                    status: "READY",
+                    paymentStatus: "NOT_REQUIRED",
+                    sender: { name: "Ada", phone: "0801" },
+                    receiver: { name: "Tola", phone: "0802" },
+                    pickup: { city: "Lagos" },
+                    delivery: { city: "Ikeja" },
+                    itemDescription: "Parcel",
+                    createdAt: new Date().toISOString(),
+                  },
+                ],
+                total: 1,
+                page: 1,
+                pageSize: 100,
+              }
+            : { items: [], total: 0, page: 1, pageSize: 20 };
         return new Response(JSON.stringify(body), {
           status: 200,
           headers: { "content-type": "application/json" },
@@ -43,15 +64,11 @@ describe("ManifestPage", () => {
     expect(
       screen.getByRole("button", { name: "Confirm and finalize" }),
     ).toBeDisabled();
-    await user.type(
-      screen.getByLabelText("Tracking IDs"),
-      "O-READY{enter}O-DRAFT{enter}O-READY",
+    await user.click(await screen.findByLabelText("Select O-READY"));
+    await user.click(
+      screen.getByRole("button", { name: "Validate selection" }),
     );
-    await user.click(screen.getByRole("button", { name: "Validate IDs" }));
-    expect(
-      (await screen.findAllByText("NOT_DISPATCH_READY", { exact: false }))[0],
-    ).toBeVisible();
-    expect(screen.getByText("Duplicates")).toBeVisible();
+    expect(await screen.findByText(/1 ready for batch/)).toBeVisible();
     expect(
       screen.getByRole("button", { name: "Confirm and finalize" }),
     ).toBeEnabled();

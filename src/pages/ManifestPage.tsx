@@ -33,6 +33,9 @@ import type {
   VendorSummary,
 } from "../features/manifests/types.ts";
 import { NIGERIA_STATE_OPTIONS } from "../constants/nigeriaStates.ts";
+import { BatchBuilder } from "../features/manifests/BatchBuilder.tsx";
+import type { DispatcherListResponse } from "../features/people/types.ts";
+import { useSession } from "../contexts/SessionContext.tsx";
 
 const errorMessage = (reason: unknown) =>
   (reason as { message?: string }).message ?? "Something went wrong";
@@ -71,44 +74,14 @@ function BatchingView({
 }: {
   initialOrderReference?: string;
 }) {
-  const client = useQueryClient();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(Boolean(initialOrderReference));
-  const [trackingIds, setTrackingIds] = useState(initialOrderReference);
-  const [validation, setValidation] = useState<Validation | null>(null);
-  const [error, setError] = useState("");
   const query = useQuery({
     queryKey: ["batches", search],
     queryFn: () =>
       apiRequest<Page<BatchSummary>>(
         `/manifests/batches?search=${encodeURIComponent(search)}`,
       ),
-  });
-  const validate = useMutation({
-    mutationFn: () =>
-      apiRequest<Validation>("/manifests/batches/validate", {
-        method: "POST",
-        body: JSON.stringify({ trackingIds }),
-      }),
-    onSuccess: (value) => {
-      setValidation(value);
-      setError("");
-    },
-    onError: (reason) => setError(errorMessage(reason)),
-  });
-  const create = useMutation({
-    mutationFn: () =>
-      apiRequest("/manifests/batches", {
-        method: "POST",
-        body: JSON.stringify({ previewToken: validation?.previewToken }),
-      }),
-    onSuccess: async () => {
-      setOpen(false);
-      setTrackingIds("");
-      setValidation(null);
-      await client.invalidateQueries({ queryKey: ["batches"] });
-    },
-    onError: (reason) => setError(errorMessage(reason)),
   });
   return (
     <div className="mt-6">
@@ -167,48 +140,11 @@ function BatchingView({
           </Table>
         </div>
       )}
-      <Modal
-        isOpen={open}
-        onOpenChange={(value) => {
-          setOpen(value);
-          if (!value) setValidation(null);
-        }}
-        title="Create shipment batch"
-        description="Paste comma- or line-separated tracking IDs. Confirmation creates an immutable batch."
-        size="lg"
-      >
-        {error && (
-          <Alert tone="danger" className="mb-4">
-            {error}
-          </Alert>
-        )}
-        <FormField label="Tracking IDs">
-          <Textarea
-            value={trackingIds}
-            onChange={(event) => {
-              setTrackingIds(event.target.value);
-              setValidation(null);
-            }}
-            placeholder={"O-1234\nO-5678"}
-          />
-        </FormField>
-        {validation && <ValidationSummary value={validation} />}
-        <div className="mt-5 flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => validate.mutate()}
-            disabled={!trackingIds.trim() || validate.isPending}
-          >
-            {validate.isPending ? "Validating…" : "Validate IDs"}
-          </Button>
-          <Button
-            onClick={() => create.mutate()}
-            disabled={!validation?.previewToken || create.isPending}
-          >
-            {create.isPending ? "Creating…" : "Confirm and finalize"}
-          </Button>
-        </div>
-      </Modal>
+      <BatchBuilder
+        key={`${open}-${initialOrderReference}`}
+        open={open}
+        onOpenChange={setOpen}
+      />
     </div>
   );
 }
@@ -243,7 +179,7 @@ function ValidationSummary({ value }: { value: Validation }) {
           ...value.valid.map((item) => ({
             trackingId: item.trackingId,
             status: "Valid",
-            detail: "Ready for manifest",
+            detail: "Ready for batch",
           })),
           ...value.invalid.map((item) => ({
             trackingId: item.trackingId,
@@ -840,6 +776,11 @@ function ManifestDetail({
   onClose: () => void;
   onRevise: (manifest: Manifest) => void;
 }) {
+  const { session } = useSession();
+  const client = useQueryClient();
+  const [dispatcherId, setDispatcherId] = useState("");
+  const [assignmentReason, setAssignmentReason] = useState("");
+  const [assignmentError, setAssignmentError] = useState("");
   const [selectedItem, setSelectedItem] = useState<
     NonNullable<Manifest["revisions"][number]["items"]>[number] | null
   >(null);
@@ -856,6 +797,51 @@ function ManifestDetail({
     URL.revokeObjectURL(url);
   };
   const revision = manifest?.revisions[0];
+  const canAssign = Boolean(
+    manifest &&
+      manifest.status === "ACCEPTED" &&
+      manifest.originVendor.id === session?.vendor.id,
+  );
+  const dispatchers = useQuery({
+    queryKey: ["dispatchers", "manifest-assignment"],
+    queryFn: () =>
+      apiRequest<DispatcherListResponse>(
+        "/people/dispatchers?status=APPROVED&pageSize=100",
+      ),
+    enabled: canAssign,
+  });
+  const assign = useMutation({
+    mutationFn: () =>
+      apiRequest(`/manifests/${manifest!.id}/dispatcher-assignment`, {
+        method: "POST",
+        headers: { "idempotency-key": crypto.randomUUID() },
+        body: JSON.stringify({ dispatcherId, reason: assignmentReason }),
+      }),
+    onSuccess: async () => {
+      setAssignmentError("");
+      await client.invalidateQueries({ queryKey: ["manifests"] });
+      onClose();
+    },
+    onError: (reason) => setAssignmentError(errorMessage(reason)),
+  });
+  const startTransit = useMutation({
+    mutationFn: () =>
+      apiRequest(`/manifests/${manifest!.id}/status`, {
+        method: "POST",
+        headers: { "idempotency-key": crypto.randomUUID() },
+        body: JSON.stringify({
+          status: "IN_TRANSIT",
+          version: manifest!.currentVersion,
+          message: "Origin dispatcher began transit",
+        }),
+      }),
+    onSuccess: async () => {
+      setAssignmentError("");
+      await client.invalidateQueries({ queryKey: ["manifests"] });
+      onClose();
+    },
+    onError: (reason) => setAssignmentError(errorMessage(reason)),
+  });
   return (
     <>
       <Modal
@@ -896,6 +882,88 @@ function ManifestDetail({
                 </Button>
               </div>
             </div>
+            {canAssign && (
+              <Card size="sm">
+                <h3 className="font-semibold">Transport dispatcher</h3>
+                {assignmentError && (
+                  <Alert className="mt-3" tone="danger">
+                    {assignmentError}
+                  </Alert>
+                )}
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  <Select
+                    label="Approved available dispatcher"
+                    selectedKey={dispatcherId || null}
+                    onSelectionChange={(key) => setDispatcherId(String(key))}
+                    options={(dispatchers.data?.items ?? [])
+                      .filter((item) => item.availability)
+                      .map((item) => ({
+                        key: item.id,
+                        label: `${item.firstName} ${item.lastName}`,
+                        description: `${item.vehicleType}${item.plateNumber ? ` · ${item.plateNumber}` : ""}`,
+                      }))}
+                  />
+                  <FormField label="Assignment reason">
+                    <Input
+                      value={assignmentReason}
+                      onChange={(event) =>
+                        setAssignmentReason(event.target.value)
+                      }
+                    />
+                  </FormField>
+                </div>
+                <Button
+                  className="mt-3"
+                  disabled={
+                    !dispatcherId ||
+                    !assignmentReason.trim() ||
+                    assign.isPending
+                  }
+                  onClick={() => assign.mutate()}
+                >
+                  {manifest.transportAssignments?.some((item) => item.active)
+                    ? "Reassign dispatcher"
+                    : "Assign dispatcher"}
+                </Button>
+                {manifest.transportAssignments?.some((item) => item.active) && (
+                  <Button
+                    className="mt-3 ml-2"
+                    variant="secondary"
+                    disabled={startTransit.isPending}
+                    onClick={() => startTransit.mutate()}
+                  >
+                    Start transit
+                  </Button>
+                )}
+              </Card>
+            )}
+            {manifest.transportAssignments?.length ? (
+              <div>
+                <h3 className="font-semibold">Dispatcher assignment history</h3>
+                <ol className="mt-2 space-y-2">
+                  {manifest.transportAssignments.map((item) => (
+                    <li
+                      key={item.id}
+                      className="rounded-xl border border-border p-3"
+                    >
+                      <b>
+                        {item.dispatcherRevision.firstName}{" "}
+                        {item.dispatcherRevision.lastName}
+                      </b>{" "}
+                      · {item.dispatcherRevision.vehicleType}
+                      {item.dispatcherRevision.plateNumber
+                        ? ` · ${item.dispatcherRevision.plateNumber}`
+                        : ""}
+                      <p className="text-xs text-muted">
+                        {item.reason} ·{" "}
+                        {new Date(item.assignedAt).toLocaleString()} ·{" "}
+                        {item.active ? "Active" : "Reassigned"}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : null}
             <div className="overflow-x-auto rounded-xl border border-border">
               <Table>
                 <THead>

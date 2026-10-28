@@ -51,10 +51,13 @@ export default function SettingsPage() {
           onSubmit={async (event) => {
             event.preventDefault();
             const data = new FormData(event.currentTarget);
+            const maxima = defaults.map((_, index) =>
+              Math.round(Number(data.get(`max-${index}`)) * 1000),
+            );
             const tiers = defaults.map((_, index) => ({
               tierNumber: index + 1,
-              minMetres: Math.round(Number(data.get(`min-${index}`)) * 1000),
-              maxMetres: Math.round(Number(data.get(`max-${index}`)) * 1000),
+              minMetres: index === 0 ? 0 : maxima[index - 1],
+              maxMetres: maxima[index],
               discountBps: Math.round(
                 Number(data.get(`discount-${index}`)) * 100,
               ),
@@ -116,15 +119,12 @@ export default function SettingsPage() {
                 key={tier.tierNumber}
               >
                 <div className="font-semibold">Tier {tier.tierNumber}</div>
-                <FormField label="From (km)">
+                <FormField label="From (km, derived)">
                   <Input
-                    name={`min-${index}`}
                     type="number"
-                    min="0"
-                    step="0.001"
                     defaultValue={tier.minMetres / 1000}
-                    readOnly={index === 0}
-                    required
+                    readOnly
+                    aria-describedby={`tier-boundary-${index}`}
                   />
                 </FormField>
                 <FormField label="To (km)">
@@ -148,6 +148,14 @@ export default function SettingsPage() {
                     required
                   />
                 </FormField>
+                <p
+                  id={`tier-boundary-${index}`}
+                  className="text-xs text-muted md:col-span-4"
+                >
+                  {index < defaults.length - 1
+                    ? `Applies from ${tier.minMetres / 1000} km inclusive up to ${tier.maxMetres / 1000} km exclusive.`
+                    : `Applies from ${tier.minMetres / 1000} km through ${tier.maxMetres / 1000} km inclusive.`}
+                </p>
               </div>
             ))}
           </div>

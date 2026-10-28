@@ -1752,6 +1752,25 @@
         ]
       }
     },
+    "/api/v1/manifests/{id}/dispatcher-assignment": {
+      "post": {
+        "operationId": "ManifestsController_assignDispatcher_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Batching and manifests"
+        ]
+      }
+    },
     "/api/v1/manifests/{id}/waybill": {
       "get": {
         "operationId": "ManifestsController_waybill_v1",
