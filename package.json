@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node init && vite",
-    "build": "node init && pnpm typecheck && vite build && pnpm bundle:check",
+    "dev": "vite",
+    "build": "pnpm typecheck && vite build && pnpm bundle:check",
     "typecheck": "tsc -b --pretty",
     "lint": "oxlint",
     "format": "prettier --write .",
