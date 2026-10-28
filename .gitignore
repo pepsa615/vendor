@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 playwright-report
+temp_auto_push.bat
 test-results
 coverage
 *.local
@@ -23,3 +24,5 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+.gitignore
+branch_structure.json
