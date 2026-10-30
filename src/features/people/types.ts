@@ -74,6 +74,16 @@ export interface DispatcherDetail {
   availability: boolean;
   approvedRevision: DispatcherRevision | null;
   latestRevision: DispatcherRevision;
+  selfieUrl?: string | null;
+  riderOnline?: boolean | null;
+  riderLocationObservedAt?: string | null;
+}
+
+export interface DispatcherLocation {
+  latitude: number;
+  longitude: number;
+  observedAt: string | null;
+  online: boolean;
 }
 
 export interface Customer {

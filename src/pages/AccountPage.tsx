@@ -9,7 +9,7 @@ import {
   Send,
   Tv,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { apiDownload, apiRequest } from "../api/client.ts";
 import {
@@ -22,6 +22,7 @@ import {
   Input,
   Modal,
   PinInput,
+  SearchInput,
   Select,
   Skeleton,
   Table,
@@ -475,12 +476,19 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
   const [scope, setScope] = useState<"internal" | "external">("internal");
   const [account, setAccount] = useState("");
   const [bank, setBank] = useState("");
+  const [bankSearch, setBankSearch] = useState("");
   const [amount, setAmount] = useState("");
   const banks = useQuery({
     queryKey: ["banks"],
     queryFn: () => apiRequest<Bank[]>("/account/banks"),
     enabled: open && scope === "external",
   });
+  const filteredBanks = (banks.data ?? []).filter((item) =>
+    `${item.name} ${item.code}`
+      .toLowerCase()
+      .includes(bankSearch.trim().toLowerCase()),
+  );
+  const selectedBank = (banks.data ?? []).find((item) => item.code === bank);
   const transfer = useMutation({
     mutationFn: () =>
       apiRequest("/account/transfers", {
@@ -526,16 +534,52 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
             </Button>
           </div>
           {scope === "external" && (
-            <Select
-              label="Bank"
-              placeholder="Select bank"
-              options={(banks.data ?? []).map((b) => ({
-                key: b.code,
-                label: b.name,
-              }))}
-              selectedKey={bank || null}
-              onSelectionChange={(key) => setBank(String(key))}
-            />
+            <FormField label="Bank">
+              {selectedBank ? (
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2">
+                  <span className="text-sm font-medium">{selectedBank.name}</span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setBank("")}
+                  >
+                    Change
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <SearchInput
+                    aria-label="Search banks"
+                    placeholder="Search banks"
+                    value={bankSearch}
+                    onChange={setBankSearch}
+                  />
+                  <div className="max-h-48 overflow-y-auto rounded-xl border border-border">
+                    {banks.isLoading ? (
+                      <p className="p-3 text-sm text-muted">Loading banks…</p>
+                    ) : filteredBanks.length === 0 ? (
+                      <p className="p-3 text-sm text-muted">No banks found</p>
+                    ) : (
+                      filteredBanks.map((item) => (
+                        <button
+                          key={item.code}
+                          type="button"
+                          className="flex w-full items-center justify-between gap-2 border-b border-border px-3 py-2 text-left text-sm last:border-b-0 hover:bg-neutral-50"
+                          onClick={() => {
+                            setBank(item.code);
+                            setBankSearch("");
+                          }}
+                        >
+                          <span className="font-medium">{item.name}</span>
+                          <span className="text-xs text-muted">{item.code}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </FormField>
           )}
           <FormField label="Account number">
             <Input
@@ -562,10 +606,52 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
     </Modal>
   );
 }
+const MOBILE_NETWORKS = ["MTN", "AIRTEL", "GLO", "9MOBILE"] as const;
+
+function ChoiceButtons({
+  label,
+  options,
+  selectedKey,
+  onSelect,
+  helper,
+}: {
+  label: string;
+  options: Array<{ key: string; label: string }>;
+  selectedKey: string;
+  onSelect: (key: string) => void;
+  helper?: string;
+}) {
+  return (
+    <FormField label={label}>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => {
+          const selected = option.key === selectedKey;
+          return (
+            <button
+              key={option.key}
+              type="button"
+              onClick={() => onSelect(option.key)}
+              className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                selected
+                  ? "border-brand bg-brand-50 text-brand"
+                  : "border-border bg-panel text-foreground hover:bg-neutral-50"
+              }`}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+      {helper ? <p className="mt-1.5 text-xs text-muted">{helper}</p> : null}
+    </FormField>
+  );
+}
+
 function VasModal({ open, close }: { open: boolean; close: () => void }) {
   const [token, setToken] = useState("");
   const [type, setType] = useState("airtime");
   const [provider, setProvider] = useState("");
+  const [providerManual, setProviderManual] = useState(false);
   const [beneficiary, setBeneficiary] = useState("");
   const [amount, setAmount] = useState("");
   const [productId, setProductId] = useState("");
@@ -594,6 +680,13 @@ function VasModal({ open, close }: { open: boolean; close: () => void }) {
       ),
     enabled: open && mobile && beneficiary.replace(/\D/g, "").length >= 10,
   });
+  useEffect(() => {
+    if (!mobile || providerManual) return;
+    const network = detected.data?.network?.toUpperCase();
+    if (!network) return;
+    const match = MOBILE_NETWORKS.find((item) => item === network);
+    if (match) setProvider(match);
+  }, [detected.data?.network, mobile, providerManual]);
   const plans = useQuery({
     queryKey: ["vas-plans", beneficiary],
     queryFn: () =>
@@ -670,38 +763,52 @@ function VasModal({ open, close }: { open: boolean; close: () => void }) {
         <PinStep purpose="VAS" onToken={setToken} />
       ) : (
         <div className="space-y-3">
-          <Select
+          <ChoiceButtons
             label="Service"
+            selectedKey={type}
+            onSelect={(key) => {
+              setType(key);
+              setProvider("");
+              setProviderManual(false);
+              setProductId("");
+              setCategoryId("");
+              setBillerId("");
+              setFields({});
+            }}
             options={[
               { key: "airtime", label: "Airtime" },
               { key: "data", label: "Data" },
               { key: "electricity", label: "Electricity" },
               { key: "cable_tv", label: "TV subscription" },
             ]}
-            selectedKey={type}
-            onSelectionChange={(key) => {
-              setType(String(key));
-              setProvider("");
-              setProductId("");
-              setCategoryId("");
-              setBillerId("");
-              setFields({});
-            }}
           />
           <FormField label="Phone, meter or smartcard number">
             <Input
               value={beneficiary}
-              onChange={(e) => setBeneficiary(e.target.value)}
+              onChange={(e) => {
+                setBeneficiary(e.target.value);
+                if (mobile) setProviderManual(false);
+              }}
             />
           </FormField>
           {mobile && (
-            <FormField label="Provider">
-              <Input
-                value={provider || detected.data?.network || ""}
-                placeholder="Detected from phone number"
-                onChange={(e) => setProvider(e.target.value)}
-              />
-            </FormField>
+            <ChoiceButtons
+              label="Provider"
+              selectedKey={provider}
+              onSelect={(key) => {
+                setProvider(key);
+                setProviderManual(true);
+              }}
+              options={MOBILE_NETWORKS.map((network) => ({
+                key: network,
+                label: network,
+              }))}
+              helper={
+                detected.data?.network
+                  ? `Detected: ${detected.data.network.toUpperCase()} — change if wrong`
+                  : "Enter a phone number to auto-detect, or pick a provider"
+              }
+            />
           )}
           {type === "data" && (
             <Select
@@ -725,35 +832,41 @@ function VasModal({ open, close }: { open: boolean; close: () => void }) {
           )}
           {utility && (
             <>
-              <Select
+              <ChoiceButtons
                 label="Service category"
-                placeholder="Select a live category"
-                options={(categories.data ?? []).map((item) => ({
-                  key: item.id ?? "",
-                  label: item.name,
-                  disabled: !item.id,
-                }))}
-                selectedKey={categoryId || null}
-                onSelectionChange={(key) => {
-                  setCategoryId(String(key));
+                selectedKey={categoryId}
+                onSelect={(key) => {
+                  setCategoryId(key);
                   setBillerId("");
                   setFields({});
                 }}
+                options={(categories.data ?? [])
+                  .filter((item) => item.id)
+                  .map((item) => ({
+                    key: item.id!,
+                    label: item.name,
+                  }))}
+                helper={
+                  categories.isLoading ? "Loading categories…" : undefined
+                }
               />
-              <Select
-                label="Biller"
-                placeholder="Select a live biller"
-                options={(billers.data ?? []).map((item) => ({
-                  key: item.id ?? "",
-                  label: item.name,
-                  disabled: !item.id,
-                }))}
-                selectedKey={billerId || null}
-                onSelectionChange={(key) => {
-                  setBillerId(String(key));
-                  setFields({});
-                }}
-              />
+              {categoryId ? (
+                <ChoiceButtons
+                  label="Biller"
+                  selectedKey={billerId}
+                  onSelect={(key) => {
+                    setBillerId(key);
+                    setFields({});
+                  }}
+                  options={(billers.data ?? [])
+                    .filter((item) => item.id)
+                    .map((item) => ({
+                      key: item.id!,
+                      label: item.name,
+                    }))}
+                  helper={billers.isLoading ? "Loading billers…" : undefined}
+                />
+              ) : null}
               {billerFields.data?.map((field) => (
                 <FormField key={field.name} label={field.label}>
                   <Input

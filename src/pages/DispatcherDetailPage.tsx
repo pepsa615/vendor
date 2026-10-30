@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileCheck2, Pencil } from "lucide-react";
+import { ArrowLeft, FileCheck2, MapPin, Pencil, UserRound } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { apiRequest } from "../api/client.ts";
@@ -8,6 +8,7 @@ import {
   Badge,
   Button,
   Card,
+  Drawer,
   FileInput,
   FormField,
   Input,
@@ -19,6 +20,7 @@ import {
 import { NIGERIA_STATE_OPTIONS } from "../constants/nigeriaStates.ts";
 import type {
   DispatcherDetail,
+  DispatcherLocation,
   DispatcherRevision,
 } from "../features/people/types.ts";
 
@@ -44,6 +46,7 @@ const detailRows = (profile: DispatcherRevision) => [
 export default function DispatcherDetailPage() {
   const { id = "" } = useParams();
   const [editOpen, setEditOpen] = useState(false);
+  const [trackOpen, setTrackOpen] = useState(false);
   const [error, setError] = useState("");
   const [documentType, setDocumentType] = useState("PROOF_OF_ID");
   const [uploading, setUploading] = useState(false);
@@ -51,6 +54,15 @@ export default function DispatcherDetailPage() {
     queryKey: ["dispatcher", id],
     queryFn: () => apiRequest<DispatcherDetail>(`/people/dispatchers/${id}`),
     enabled: Boolean(id),
+  });
+  const locationQuery = useQuery({
+    queryKey: ["dispatcher-location", id],
+    queryFn: () =>
+      apiRequest<DispatcherLocation | null>(
+        `/people/dispatchers/${id}/location`,
+      ),
+    enabled: Boolean(id) && trackOpen,
+    refetchInterval: trackOpen ? 15_000 : false,
   });
   if (query.isLoading) return <Skeleton className="h-96" />;
   if (!query.data)
@@ -62,6 +74,7 @@ export default function DispatcherDetailPage() {
     dispatcher.latestRevision.id !== dispatcher.approvedRevision.id
       ? dispatcher.latestRevision
       : null;
+  const location = locationQuery.data;
   return (
     <section>
       <Link
@@ -71,27 +84,40 @@ export default function DispatcherDetailPage() {
         <ArrowLeft className="size-4" /> Back to dispatchers
       </Link>
       <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-2xl font-bold">
-              {profile.firstName} {profile.lastName}
-            </h2>
-            <Badge
-              tone={
-                dispatcher.status === "APPROVED"
-                  ? "success"
-                  : dispatcher.status === "REJECTED"
-                    ? "danger"
-                    : "warning"
-              }
-              dot
-            >
-              {dispatcher.status.replaceAll("_", " ")}
-            </Badge>
+        <div className="flex flex-wrap items-start gap-4">
+          <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 ring-1 ring-border">
+            {dispatcher.selfieUrl ? (
+              <img
+                src={dispatcher.selfieUrl}
+                alt={`${profile.firstName} ${profile.lastName}`}
+                className="size-full object-cover"
+              />
+            ) : (
+              <UserRound className="size-8 text-muted" />
+            )}
           </div>
-          <p className="mt-1 text-sm text-muted">
-            Dispatcher profile version {profile.version}
-          </p>
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-2xl font-bold">
+                {profile.firstName} {profile.lastName}
+              </h2>
+              <Badge
+                tone={
+                  dispatcher.status === "APPROVED"
+                    ? "success"
+                    : dispatcher.status === "REJECTED"
+                      ? "danger"
+                      : "warning"
+                }
+                dot
+              >
+                {dispatcher.status.replaceAll("_", " ")}
+              </Badge>
+            </div>
+            <p className="mt-1 text-sm text-muted">
+              Dispatcher profile version {profile.version}
+            </p>
+          </div>
         </div>
         <Button
           variant="outline"
@@ -167,6 +193,23 @@ export default function DispatcherDetailPage() {
               >
                 {dispatcher.availability ? "Online" : "Offline"}
               </Switch>
+            </div>
+            <div className="mt-4 border-t border-border pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setTrackOpen(true)}
+              >
+                <MapPin className="size-4" /> Track live location
+              </Button>
+              {dispatcher.riderLocationObservedAt && (
+                <p className="mt-2 text-xs text-muted">
+                  Last seen{" "}
+                  {new Date(
+                    dispatcher.riderLocationObservedAt,
+                  ).toLocaleString()}
+                </p>
+              )}
             </div>
           </Card>
           <Card>
@@ -335,6 +378,42 @@ export default function DispatcherDetailPage() {
           <Button className="sm:col-span-2">Save review version</Button>
         </form>
       </Modal>
+      <Drawer
+        isOpen={trackOpen}
+        onOpenChange={setTrackOpen}
+        title={`${profile.firstName} ${profile.lastName}`}
+        description="Live rider location from the rider app."
+      >
+        <div className="space-y-4 text-sm">
+          {locationQuery.isLoading ? (
+            <Skeleton className="h-56" />
+          ) : location ? (
+            <div className="rounded-xl border border-border bg-surface-subtle p-4">
+              <p className="font-semibold">Live location</p>
+              <iframe
+                className="mt-3 h-56 w-full rounded-lg border-0"
+                title="Rider live location"
+                loading="lazy"
+                src={`https://www.openstreetmap.org/export/embed.html?marker=${encodeURIComponent(String(location.latitude))}%2C${encodeURIComponent(String(location.longitude))}`}
+              />
+              <p className="mt-2">
+                Latitude {location.latitude}, longitude {location.longitude}
+              </p>
+              <p className="text-xs text-muted">
+                {location.online ? "Online" : "Offline"}
+                {location.observedAt
+                  ? ` · Updated ${new Date(location.observedAt).toLocaleString()}`
+                  : ""}
+              </p>
+            </div>
+          ) : (
+            <p className="text-muted">
+              Location unavailable. The rider may be offline or not linked by
+              phone yet.
+            </p>
+          )}
+        </div>
+      </Drawer>
     </section>
   );
 }

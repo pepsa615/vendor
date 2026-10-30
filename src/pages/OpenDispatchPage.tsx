@@ -1078,7 +1078,7 @@ function AssignmentPanel({
           if (!open && !sourceId) setSourceType("order");
         }}
         title="Create order for a customer"
-        description="Create an unpriced order on the customer's behalf. Mobility and pricing are selected only for Open Dispatch."
+        description="Enter pickup and delivery first to see the estimated price, then complete contacts and parcel details."
         size="xl"
       >
         <VendorOrderForm
@@ -1347,7 +1347,7 @@ function CustomerOrders() {
         isOpen={creating}
         onOpenChange={setCreating}
         title="Create order for a customer"
-        description="Create an unpriced order on the customer's behalf."
+        description="Enter pickup and delivery first to see the estimated price, then complete contacts and parcel details."
         size="xl"
       >
         <VendorOrderForm

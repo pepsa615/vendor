@@ -8,7 +8,7 @@ import {
 } from "../../constants/orderOptions.ts";
 import type { CustomerListResponse } from "../people/types.ts";
 import { formatLocationSummary, readLocationFromForm } from "./orderIntake.ts";
-import type { VendorOrder } from "./types.ts";
+import type { PricingQuote, VendorOrder } from "./types.ts";
 import {
   Alert,
   Button,
@@ -19,7 +19,12 @@ import {
   Select,
 } from "../../components/ui/index.ts";
 
-const steps = ["Contacts", "Route", "Parcel", "Review"];
+const steps = ["Route", "Quote", "Contacts", "Parcel", "Review"];
+
+const money = (minor: number, currency = "NGN") =>
+  new Intl.NumberFormat("en-NG", { style: "currency", currency }).format(
+    minor / 100,
+  );
 
 export function VendorOrderForm({
   onCreated,
@@ -42,6 +47,7 @@ export function VendorOrderForm({
   const [handling, setHandling] = useState("");
   const [inspectionConsent, setInspectionConsent] = useState(false);
   const [sizeEstimate, setSizeEstimate] = useState("");
+  const [quote, setQuote] = useState<PricingQuote | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [review, setReview] = useState({ route: "", receiver: "" });
@@ -53,7 +59,30 @@ export function VendorOrderForm({
   const value = (name: string) =>
     String(new FormData(formRef.current!).get(name) ?? "").trim();
 
-  const next = () => {
+  const requestQuote = async () => {
+    if (!formRef.current) return;
+    const data = new FormData(formRef.current);
+    const pickup = readLocationFromForm(data, "pickup");
+    const delivery = readLocationFromForm(data, "delivery");
+    setLoading(true);
+    setError("");
+    try {
+      const created = await apiRequest<PricingQuote>("/pricing/quotes", {
+        method: "POST",
+        body: JSON.stringify({ pickup, delivery }),
+      });
+      setQuote(created);
+      setStep(1);
+    } catch (reason) {
+      setError(
+        (reason as { message?: string }).message ?? "Unable to calculate price",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const next = async () => {
     const panel = formRef.current?.querySelector<HTMLElement>(
       `[data-order-step="${step}"]`,
     );
@@ -61,15 +90,20 @@ export function VendorOrderForm({
       ...(panel?.querySelectorAll<HTMLInputElement>("input") ?? []),
     ].find((field) => !field.checkValidity());
     if (invalid) return invalid.reportValidity();
-    if (step === 1 && (!pickupReady || !deliveryReady))
-      return setError(
-        "Select pickup and delivery addresses from search, then confirm state.",
-      );
-    if (step === 2 && (!category || !handling || !inspectionConsent))
+    if (step === 0) {
+      if (!pickupReady || !deliveryReady)
+        return setError(
+          "Select pickup and delivery addresses from search, then confirm state.",
+        );
+      return requestQuote();
+    }
+    if (step === 1 && !quote)
+      return setError("Calculate a price before continuing.");
+    if (step === 3 && (!category || !handling || !inspectionConsent))
       return setError(
         "Parcel category, handling, and package inspection consent are compulsory.",
       );
-    if (step === 2 && formRef.current) {
+    if (step === 3 && formRef.current) {
       const data = new FormData(formRef.current);
       const pickup = readLocationFromForm(data, "pickup");
       const delivery = readLocationFromForm(data, "delivery");
@@ -79,11 +113,12 @@ export function VendorOrderForm({
       });
     }
     setError("");
-    setStep((current) => Math.min(3, current + 1));
+    setStep((current) => Math.min(4, current + 1));
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!quote) return setError("A valid price quote is required.");
     const data = new FormData(formRef.current!);
     const pickup = readLocationFromForm(data, "pickup");
     const delivery = readLocationFromForm(data, "delivery");
@@ -110,6 +145,7 @@ export function VendorOrderForm({
           },
           pickup,
           delivery,
+          quoteReference: quote.publicReference,
           orderType: category,
           handling,
           declaredValue: Number(value("itemValue")),
@@ -141,7 +177,7 @@ export function VendorOrderForm({
 
   return (
     <form ref={formRef} onSubmit={submit}>
-      <ol className="mb-6 grid grid-cols-4 gap-2" aria-label="Order steps">
+      <ol className="mb-6 grid grid-cols-5 gap-2" aria-label="Order steps">
         {steps.map((label, index) => (
           <li key={label} className="min-w-0">
             <div
@@ -163,6 +199,67 @@ export function VendorOrderForm({
 
       <StepPanel
         step={0}
+        current={step}
+        title="Pickup and delivery route"
+        copy="Search Nigerian addresses first so we can calculate the delivery price before contacts."
+      >
+        <RouteLocationFields
+          title="Pickup location"
+          namePrefix="pickup"
+          onResolvedChange={setPickupReady}
+        />
+        <RouteLocationFields
+          title="Delivery location"
+          namePrefix="delivery"
+          onResolvedChange={setDeliveryReady}
+        />
+      </StepPanel>
+
+      <section data-order-step="1" hidden={step !== 1} className="space-y-4">
+        <div>
+          <h3 className="font-semibold">Estimated price</h3>
+          <p className="mt-1 text-sm text-muted">
+            Review the quote for this route before entering sender and receiver
+            details.
+          </p>
+        </div>
+        {quote ? (
+          <Card size="sm">
+            <div className="grid gap-3 text-sm sm:grid-cols-2">
+              <Review
+                label="Price"
+                value={money(quote.finalAmountMinor, quote.currency)}
+              />
+              <Review
+                label="Distance"
+                value={`${(quote.distanceMetres / 1000).toFixed(1)} km`}
+              />
+              <Review
+                label="ETA"
+                value={`${Math.ceil(quote.durationSeconds / 60)} min`}
+              />
+              <Review
+                label="Expires"
+                value={new Date(quote.expiresAt).toLocaleString()}
+              />
+            </div>
+          </Card>
+        ) : (
+          <Alert tone="warning">No quote yet. Go back and confirm the route.</Alert>
+        )}
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          loading={loading}
+          onClick={() => requestQuote()}
+        >
+          Recalculate price
+        </Button>
+      </section>
+
+      <StepPanel
+        step={2}
         current={step}
         title="Customer and contacts"
         copy="Link a saved customer if available, then provide sender and receiver details."
@@ -342,25 +439,7 @@ export function VendorOrderForm({
       </StepPanel>
 
       <StepPanel
-        step={1}
-        current={step}
-        title="Pickup and delivery route"
-        copy="Search Nigerian addresses, add street or landmark details, and confirm state. Pricing happens when this order is sent to Open Dispatch."
-      >
-        <RouteLocationFields
-          title="Pickup location"
-          namePrefix="pickup"
-          onResolvedChange={setPickupReady}
-        />
-        <RouteLocationFields
-          title="Delivery location"
-          namePrefix="delivery"
-          onResolvedChange={setDeliveryReady}
-        />
-      </StepPanel>
-
-      <StepPanel
-        step={2}
+        step={3}
         current={step}
         title="Parcel information"
         copy="Category and handling are compulsory and are shared with fulfilment."
@@ -446,17 +525,25 @@ export function VendorOrderForm({
         </div>
       </StepPanel>
 
-      <section data-order-step="3" hidden={step !== 3} className="space-y-4">
+      <section data-order-step="4" hidden={step !== 4} className="space-y-4">
         <div>
           <h3 className="font-semibold">Review order</h3>
           <p className="mt-1 text-sm text-muted">
-            Confirm the route and parcel information. This creates the order
-            without selecting mobility or requesting a price.
+            Confirm the route, price, and parcel information before creating the
+            order.
           </p>
         </div>
         <Card size="sm">
           <div className="grid gap-3 text-sm sm:grid-cols-2">
             <Review label="Route" value={review.route} />
+            <Review
+              label="Price"
+              value={
+                quote
+                  ? money(quote.finalAmountMinor, quote.currency)
+                  : "—"
+              }
+            />
             <Review
               label="Parcel"
               value={
@@ -481,12 +568,12 @@ export function VendorOrderForm({
           type="button"
           variant="secondary"
           disabled={step === 0}
-          onClick={() => setStep((current) => current - 1)}
+          onClick={() => setStep((current) => Math.max(0, current - 1))}
         >
           Back
         </Button>
-        {step < 3 ? (
-          <Button type="button" onClick={next}>
+        {step < 4 ? (
+          <Button type="button" loading={loading} onClick={() => void next()}>
             Continue
           </Button>
         ) : (
