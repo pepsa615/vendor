@@ -20,7 +20,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { apiDownload, apiRequest } from "../api/client.ts";
 import {
   Alert,
@@ -466,12 +466,20 @@ function WalletView() {
               <Th>Description</Th>
               <Th>Amount</Th>
               <Th>Status</Th>
+              <Th>Receipt</Th>
             </Tr>
           </THead>
           <TBody>
             {(statement.data?.data ?? []).map((t) => (
               <Tr key={t.transaction_id}>
-                <Td>{t.transaction_id.slice(0, 8)}</Td>
+                <Td>
+                  <Link
+                    className="font-semibold text-brand hover:underline"
+                    to={`/account/transactions/${t.transaction_id}`}
+                  >
+                    {t.transaction_id.slice(0, 8)}
+                  </Link>
+                </Td>
                 <Td>{new Date(t.created_at).toLocaleString()}</Td>
                 <Td>{t.narration ?? t.type}</Td>
                 <Td>{moneyString(t.amount)}</Td>
@@ -481,6 +489,15 @@ function WalletView() {
                   >
                     {t.status}
                   </Badge>
+                </Td>
+                <Td>
+                  <Link
+                    className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
+                    to={`/account/transactions/${t.transaction_id}`}
+                  >
+                    View details
+                    <ChevronRight className="size-3.5" />
+                  </Link>
                 </Td>
               </Tr>
             ))}
@@ -648,7 +665,7 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
 }
 const MOBILE_NETWORKS = ["MTN", "AIRTEL", "GLO", "9MOBILE"] as const;
 type VasType = "airtime" | "data" | "electricity" | "cable_tv";
-type VasStage = "details" | "review" | "authorize" | "success";
+type VasStage = "provider" | "details" | "review" | "authorize" | "success";
 const VAS_SERVICES: Array<{
   key: VasType;
   label: string;
@@ -691,6 +708,16 @@ const VAS_SERVICES: Array<{
   },
 ];
 const AIRTIME_AMOUNTS = [100, 200, 500, 1000, 2000, 5000];
+
+function catalogValue(item: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = item[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (typeof value === "number" && Number.isFinite(value))
+      return String(value);
+  }
+  return undefined;
+}
 
 function ChoiceButtons({
   label,
@@ -763,7 +790,6 @@ function VasModalV2({
   const [type, setType] = useState<VasType>(initialType);
   const [token, setToken] = useState("");
   const [provider, setProvider] = useState("");
-  const [providerManual, setProviderManual] = useState(false);
   const [beneficiary, setBeneficiary] = useState("");
   const [amount, setAmount] = useState("");
   const [productId, setProductId] = useState("");
@@ -773,6 +799,7 @@ function VasModalV2({
   const [validationReference, setValidationReference] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [formError, setFormError] = useState("");
+  const [providerSearch, setProviderSearch] = useState("");
   const mobile = type === "airtime" || type === "data";
   const utility = type === "electricity" || type === "cable_tv";
   const service = VAS_SERVICES.find((item) => item.key === type)!;
@@ -780,10 +807,13 @@ function VasModalV2({
   useEffect(() => {
     if (!open) return;
     setType(initialType);
-    setStage("details");
+    setStage(
+      initialType === "electricity" || initialType === "cable_tv"
+        ? "provider"
+        : "details",
+    );
     setToken("");
     setProvider("");
-    setProviderManual(false);
     setBeneficiary("");
     setAmount("");
     setProductId("");
@@ -793,30 +823,72 @@ function VasModalV2({
     setValidationReference("");
     setCustomerName("");
     setFormError("");
+    setProviderSearch("");
   }, [initialType, open]);
 
   const detected = useQuery({
     queryKey: ["vas-network", beneficiary],
-    queryFn: () =>
-      apiRequest<{ network: string }>(
+    queryFn: async () => {
+      const response = await apiRequest<Record<string, unknown>>(
         `/account/vas/catalog?path=${encodeURIComponent(`networks/detect?phone=${beneficiary}`)}`,
-      ),
+      );
+      const nested =
+        response.data && typeof response.data === "object"
+          ? (response.data as Record<string, unknown>)
+          : response;
+      return {
+        network:
+          catalogValue(nested, [
+            "network",
+            "networkName",
+            "network_name",
+            "provider",
+            "providerName",
+          ]) ?? "",
+      };
+    },
     enabled: open && mobile && beneficiary.replace(/\D/g, "").length >= 10,
   });
   useEffect(() => {
-    if (!mobile || providerManual) return;
+    if (!mobile) return;
     const network = detected.data?.network?.toUpperCase();
-    const match = MOBILE_NETWORKS.find((item) => item === network);
-    if (match) setProvider(match);
-  }, [detected.data?.network, mobile, providerManual]);
+    if (network) setProvider(network);
+  }, [detected.data?.network, mobile]);
   const plans = useQuery({
     queryKey: ["vas-plans", beneficiary],
-    queryFn: () =>
-      apiRequest<CatalogItem[]>(
+    queryFn: async () => {
+      const items = await apiRequest<Record<string, unknown>[]>(
         `/account/vas/catalog?path=${encodeURIComponent(`data-plans?phone=${beneficiary}`)}`,
-      ),
-    enabled:
-      open && type === "data" && beneficiary.replace(/\D/g, "").length >= 10,
+      );
+      return items
+        .map((item) => ({
+          productId: catalogValue(item, [
+            "productId",
+            "product_id",
+            "planId",
+            "plan_id",
+            "id",
+            "code",
+          ]),
+          name:
+            catalogValue(item, [
+              "name",
+              "productName",
+              "product_name",
+              "planName",
+              "plan_name",
+              "description",
+            ]) ?? "",
+          amount: catalogValue(item, [
+            "amount",
+            "price",
+            "faceValue",
+            "face_value",
+          ]),
+        }))
+        .filter((item) => item.productId && item.name && item.amount);
+    },
+    enabled: open && type === "data" && Boolean(detected.data?.network),
   });
   const categories = useQuery({
     queryKey: ["vas-categories"],
@@ -835,6 +907,11 @@ function VasModalV2({
   const visibleCategories = matchedCategories.length
     ? matchedCategories
     : (categories.data ?? []);
+  useEffect(() => {
+    if (!utility || categoryId || visibleCategories.length === 0) return;
+    const category = visibleCategories[0];
+    if (category?.id) setCategoryId(category.id);
+  }, [categoryId, utility, visibleCategories]);
   const billers = useQuery({
     queryKey: ["vas-billers", categoryId],
     queryFn: () =>
@@ -845,27 +922,86 @@ function VasModalV2({
   });
   const billerFields = useQuery({
     queryKey: ["vas-biller-fields", billerId],
-    queryFn: () =>
-      apiRequest<BillerField[]>(
+    queryFn: async () => {
+      const items = await apiRequest<Record<string, unknown>[]>(
         `/account/vas/catalog?path=${encodeURIComponent(`billers/${billerId}/fields`)}`,
-      ),
+      );
+      return items
+        .map((item): BillerField => {
+          const name =
+            catalogValue(item, [
+              "name",
+              "fieldName",
+              "field_name",
+              "key",
+              "id",
+            ]) ?? "";
+          return {
+            name,
+            label:
+              catalogValue(item, [
+                "label",
+                "displayName",
+                "display_name",
+                "fieldLabel",
+                "field_label",
+                "title",
+              ]) ?? name,
+            required: Boolean(
+              item.required ?? item.isRequired ?? item.is_required ?? false,
+            ),
+            type:
+              catalogValue(item, ["type", "fieldType", "field_type"]) ??
+              "string",
+          };
+        })
+        .filter((item) => item.name && item.label);
+    },
     enabled: open && utility && Boolean(billerId),
   });
   const validate = useMutation({
-    mutationFn: () =>
-      apiRequest<Validation>("/account/vas/validate", {
-        method: "POST",
-        body: JSON.stringify({
-          billerId,
-          beneficiaryIdentifier: beneficiary,
-          fields,
-        }),
-      }),
-    onSuccess: (result) => {
-      setValidationReference(result.validation_reference);
-      setCustomerName(
-        result.customer_name ?? result.customerName ?? result.name ?? "",
+    mutationFn: async () => {
+      const response = await apiRequest<Validation & Record<string, unknown>>(
+        "/account/vas/validate",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            billerId,
+            beneficiaryIdentifier: beneficiary,
+            fields,
+          }),
+        },
       );
+      const nested =
+        response.data && typeof response.data === "object"
+          ? (response.data as Record<string, unknown>)
+          : response;
+      return {
+        validation_reference:
+          catalogValue(nested, [
+            "validation_reference",
+            "validationReference",
+            "reference",
+            "transactionReference",
+          ]) ?? "",
+        customer_name: catalogValue(nested, [
+          "customer_name",
+          "customerName",
+          "name",
+          "accountName",
+          "account_name",
+        ]),
+      };
+    },
+    onSuccess: (result) => {
+      if (!result.validation_reference) {
+        setFormError(
+          "The provider did not return a validation reference. Try again.",
+        );
+        return;
+      }
+      setValidationReference(result.validation_reference);
+      setCustomerName(result.customer_name ?? "");
       setStage("review");
     },
     onError: () =>
@@ -906,6 +1042,13 @@ function VasModalV2({
   const selectedBiller = (billers.data ?? []).find(
     (item) => item.id === billerId,
   );
+  const filteredBillers = (billers.data ?? []).filter(
+    (item) =>
+      item.id &&
+      `${item.name} ${item.id}`
+        .toLowerCase()
+        .includes(providerSearch.trim().toLowerCase()),
+  );
   const amountMinor = Math.round(Number(amount) * 100);
   const identifierLabel =
     type === "electricity"
@@ -926,8 +1069,10 @@ function VasModalV2({
       ));
   const changeType = (next: VasType) => {
     setType(next);
+    setStage(
+      next === "electricity" || next === "cable_tv" ? "provider" : "details",
+    );
     setProvider("");
-    setProviderManual(false);
     setProductId("");
     setAmount("");
     setCategoryId("");
@@ -936,6 +1081,7 @@ function VasModalV2({
     setValidationReference("");
     setCustomerName("");
     setFormError("");
+    setProviderSearch("");
   };
   const continueToReview = () => {
     setFormError("");
@@ -952,6 +1098,31 @@ function VasModalV2({
       title="Pay & recharge"
       description="Fast, secure payments from your Pepsa wallet"
       size="xl"
+      footer={
+        stage === "details" ? (
+          <Button
+            className="w-full sm:w-auto sm:min-w-52"
+            disabled={!canContinue || (utility && billerFields.isLoading)}
+            loading={validate.isPending}
+            onClick={continueToReview}
+          >
+            {utility ? "Verify details" : "Review payment"}
+            <ChevronRight className="size-4" />
+          </Button>
+        ) : stage === "review" ? (
+          <Button
+            className="w-full sm:w-auto sm:min-w-64"
+            onClick={() => setStage("authorize")}
+          >
+            Continue to secure payment
+            <ShieldCheck className="size-4" />
+          </Button>
+        ) : stage === "success" ? (
+          <Button className="w-full sm:w-auto sm:min-w-40" onClick={close}>
+            Done
+          </Button>
+        ) : undefined
+      }
     >
       {stage === "success" ? (
         <div className="mx-auto max-w-md py-6 text-center">
@@ -968,9 +1139,6 @@ function VasModalV2({
             <SummaryRow label="Recipient" value={beneficiary} />
             <SummaryRow label="Amount" value={ngn(amountMinor)} strong />
           </div>
-          <Button className="mt-6 w-full" onClick={close}>
-            Done
-          </Button>
         </div>
       ) : (
         <div className="grid min-h-[30rem] gap-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
@@ -1005,209 +1173,290 @@ function VasModalV2({
             </div>
           </aside>
           <div className="min-w-0">
-            {stage === "details" && (
-              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_16rem]">
-                <div className="space-y-5">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`grid size-11 place-items-center rounded-xl ${service.accent}`}
-                    >
-                      {type === "airtime" ? (
-                        <Phone className="size-5" />
-                      ) : type === "data" ? (
-                        <Wifi className="size-5" />
-                      ) : type === "electricity" ? (
-                        <Zap className="size-5" />
-                      ) : (
-                        <Tv className="size-5" />
-                      )}
-                    </span>
-                    <div>
-                      <h3 className="text-lg font-bold">{service.label}</h3>
-                      <p className="text-sm text-muted">
-                        {service.description}
-                      </p>
-                    </div>
+            {stage === "provider" && (
+              <div className="mx-auto max-w-xl">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`grid size-11 place-items-center rounded-xl ${service.accent}`}
+                  >
+                    {type === "electricity" ? (
+                      <Zap className="size-5" />
+                    ) : (
+                      <Tv className="size-5" />
+                    )}
+                  </span>
+                  <div>
+                    <h3 className="text-lg font-bold">
+                      Choose your{" "}
+                      {type === "electricity" ? "electricity" : "TV"} provider
+                    </h3>
+                    <p className="text-sm text-muted">
+                      Select a provider from the live Pepsa Pay catalog.
+                    </p>
                   </div>
-                  {formError && (
-                    <Alert tone="danger" title="Check your details">
-                      {formError}
-                    </Alert>
-                  )}
-                  <FormField label={identifierLabel}>
-                    <div className="relative">
-                      <Smartphone className="pointer-events-none absolute left-3 top-3 size-4 text-muted" />
-                      <Input
-                        className="pl-10"
-                        inputMode="numeric"
-                        placeholder={
-                          mobile
-                            ? "0801 234 5678"
-                            : `Enter ${identifierLabel.toLowerCase()}`
-                        }
-                        value={beneficiary}
-                        onChange={(event) => {
-                          setBeneficiary(event.target.value);
-                          setValidationReference("");
-                          if (mobile) setProviderManual(false);
-                        }}
-                      />
-                    </div>
-                  </FormField>
-                  {mobile && (
-                    <ChoiceButtons
-                      label="Network"
-                      selectedKey={provider}
-                      onSelect={(key) => {
-                        setProvider(key);
-                        setProviderManual(true);
-                      }}
-                      options={MOBILE_NETWORKS.map((network) => ({
-                        key: network,
-                        label: network,
-                      }))}
-                      helper={
-                        detected.isFetching
-                          ? "Detecting network…"
-                          : detected.data?.network
-                            ? `Detected ${detected.data.network.toUpperCase()}. Change it if this number was ported.`
-                            : "Enter a number for automatic detection, or choose the network."
-                      }
+                </div>
+                {categories.isLoading ||
+                (Boolean(categoryId) && billers.isLoading) ||
+                (!categoryId && !categories.isError) ? (
+                  <CatalogLoader label="Fetching available providers…" />
+                ) : categories.isError || billers.isError ? (
+                  <Alert
+                    className="mt-6"
+                    tone="danger"
+                    title="Providers unavailable"
+                  >
+                    We could not load providers from Pepsa Pay. Close this
+                    window and try again.
+                  </Alert>
+                ) : (
+                  <>
+                    <SearchInput
+                      className="mt-6"
+                      aria-label="Search providers"
+                      placeholder="Search providers"
+                      value={providerSearch}
+                      onChange={setProviderSearch}
                     />
-                  )}
-                  {type === "data" && (
-                    <Select
-                      label="Data bundle"
-                      placeholder={
-                        plans.isLoading
-                          ? "Loading live bundles…"
-                          : "Choose a bundle"
-                      }
-                      options={(plans.data ?? []).map((plan) => ({
-                        key: plan.productId ?? "",
-                        label: `${plan.name}${plan.amount ? ` — ${moneyString(plan.amount)}` : ""}`,
-                        disabled: !plan.productId,
-                      }))}
-                      selectedKey={productId || null}
-                      onSelectionChange={(key) => {
-                        const selected = String(key);
-                        setProductId(selected);
-                        const plan = plans.data?.find(
-                          (item) => item.productId === selected,
-                        );
-                        if (plan?.amount) setAmount(plan.amount);
-                      }}
-                    />
-                  )}
-                  {utility && (
-                    <>
-                      <ChoiceButtons
-                        label={
-                          type === "electricity"
-                            ? "Distribution company"
-                            : "TV provider category"
-                        }
-                        selectedKey={categoryId}
-                        onSelect={(key) => {
-                          setCategoryId(key);
-                          setBillerId("");
-                          setFields({});
-                        }}
-                        options={visibleCategories
-                          .filter((item) => item.id)
-                          .map((item) => ({ key: item.id!, label: item.name }))}
-                        helper={
-                          categories.isLoading
-                            ? "Loading providers…"
-                            : undefined
-                        }
-                      />
-                      {categoryId && (
-                        <ChoiceButtons
-                          label="Provider or package"
-                          selectedKey={billerId}
-                          onSelect={(key) => {
-                            setBillerId(key);
+                    <div className="mt-4 max-h-[22rem] space-y-2 overflow-y-auto pr-1">
+                      {filteredBillers.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setBillerId(item.id ?? "");
                             setFields({});
                             setValidationReference("");
+                            setStage("details");
                           }}
-                          options={(billers.data ?? [])
-                            .filter((item) => item.id)
-                            .map((item) => ({
-                              key: item.id!,
-                              label: item.name,
-                            }))}
-                          helper={
-                            billers.isLoading
-                              ? "Loading available options…"
-                              : undefined
-                          }
-                        />
-                      )}
-                      {billerFields.data?.map((field) => (
-                        <FormField
-                          key={field.name}
-                          label={`${field.label}${field.required ? " *" : ""}`}
+                          className="group flex w-full items-center justify-between gap-4 rounded-xl border border-border bg-panel p-4 text-left transition hover:border-brand-300 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                         >
-                          <Input
-                            required={field.required}
-                            value={fields[field.name] ?? ""}
-                            onChange={(event) => {
-                              setFields((current) => ({
-                                ...current,
-                                [field.name]: event.target.value,
-                              }));
-                              setValidationReference("");
-                            }}
-                          />
-                        </FormField>
+                          <span>
+                            <span className="block font-semibold">
+                              {item.name}
+                            </span>
+                            <span className="mt-1 block text-xs text-muted">
+                              {type === "electricity"
+                                ? "Electricity distribution provider"
+                                : "TV subscription provider"}
+                            </span>
+                          </span>
+                          <ChevronRight className="size-5 shrink-0 text-muted transition group-hover:translate-x-0.5 group-hover:text-brand" />
+                        </button>
                       ))}
-                    </>
-                  )}
-                  {type !== "data" && (
-                    <FormField label="Amount">
+                      {filteredBillers.length === 0 && (
+                        <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted">
+                          No provider matches “{providerSearch}”.
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+            {stage === "details" && utility && billerFields.isLoading ? (
+              <CatalogLoader label="Preparing provider fields…" />
+            ) : (
+              stage === "details" && (
+                <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_16rem]">
+                  <div className="space-y-5">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`grid size-11 place-items-center rounded-xl ${service.accent}`}
+                      >
+                        {type === "airtime" ? (
+                          <Phone className="size-5" />
+                        ) : type === "data" ? (
+                          <Wifi className="size-5" />
+                        ) : type === "electricity" ? (
+                          <Zap className="size-5" />
+                        ) : (
+                          <Tv className="size-5" />
+                        )}
+                      </span>
+                      <div>
+                        <h3 className="text-lg font-bold">{service.label}</h3>
+                        <p className="text-sm text-muted">
+                          {service.description}
+                        </p>
+                      </div>
+                    </div>
+                    {formError && (
+                      <Alert tone="danger" title="Check your details">
+                        {formError}
+                      </Alert>
+                    )}
+                    <FormField label={identifierLabel}>
                       <div className="relative">
-                        <span className="pointer-events-none absolute left-3 top-2.5 text-sm font-semibold text-muted">
-                          ₦
-                        </span>
+                        <Smartphone className="pointer-events-none absolute left-3 top-3 size-4 text-muted" />
                         <Input
-                          className="pl-8 text-base font-semibold"
-                          type="number"
-                          min="1"
-                          step="1"
-                          placeholder="0.00"
-                          value={amount}
-                          onChange={(event) => setAmount(event.target.value)}
+                          className="pl-10"
+                          inputMode="numeric"
+                          placeholder={
+                            mobile
+                              ? "0801 234 5678"
+                              : `Enter ${identifierLabel.toLowerCase()}`
+                          }
+                          value={beneficiary}
+                          onChange={(event) => {
+                            setBeneficiary(event.target.value);
+                            setValidationReference("");
+                            if (mobile) {
+                              setProvider("");
+                              setProductId("");
+                              if (type === "data") setAmount("");
+                            }
+                          }}
                         />
                       </div>
                     </FormField>
-                  )}
-                  {type === "airtime" && (
-                    <div className="flex flex-wrap gap-2">
-                      {AIRTIME_AMOUNTS.map((value) => (
-                        <button
-                          key={value}
-                          type="button"
-                          onClick={() => setAmount(String(value))}
-                          className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${Number(amount) === value ? "border-brand bg-brand-50 text-brand" : "border-border hover:border-brand-200 hover:bg-brand-50"}`}
-                        >
-                          ₦{value.toLocaleString()}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  <Button
-                    className="w-full"
-                    disabled={!canContinue}
-                    loading={validate.isPending}
-                    onClick={continueToReview}
-                  >
-                    {utility ? "Verify details" : "Review payment"}
-                    <ChevronRight className="size-4" />
-                  </Button>
+                    {mobile &&
+                      beneficiary.replace(/\D/g, "").length >= 10 &&
+                      (detected.isFetching ? (
+                        <CatalogLoader
+                          label="Detecting mobile network…"
+                          compact
+                        />
+                      ) : detected.isError ? (
+                        <Alert tone="danger" title="Network not detected">
+                          Check the mobile number and try again.
+                        </Alert>
+                      ) : detected.data?.network ? (
+                        <div className="flex items-center justify-between rounded-xl border border-brand-100 bg-brand-50/60 p-4">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                              Network detected by Pepsa Pay
+                            </p>
+                            <p className="mt-1 font-bold">
+                              {detected.data.network.toUpperCase()}
+                            </p>
+                          </div>
+                          <CheckCircle2 className="size-5 text-success-700" />
+                        </div>
+                      ) : null)}
+                    {type === "data" && plans.isFetching && (
+                      <CatalogLoader
+                        label="Fetching available data bundles…"
+                        compact
+                      />
+                    )}
+                    {type === "data" && !plans.isFetching && plans.data && (
+                      <Select
+                        label="Data bundle"
+                        placeholder={
+                          plans.isLoading
+                            ? "Loading live bundles…"
+                            : "Choose a bundle"
+                        }
+                        options={(plans.data ?? []).map((plan) => ({
+                          key: plan.productId ?? "",
+                          label: `${plan.name}${plan.amount ? ` — ${moneyString(plan.amount)}` : ""}`,
+                          disabled: !plan.productId,
+                        }))}
+                        selectedKey={productId || null}
+                        onSelectionChange={(key) => {
+                          const selected = String(key);
+                          setProductId(selected);
+                          const plan = plans.data?.find(
+                            (item) => item.productId === selected,
+                          );
+                          if (plan?.amount) setAmount(plan.amount);
+                        }}
+                      />
+                    )}
+                    {type === "data" && plans.isError && (
+                      <Alert tone="danger" title="Bundles unavailable">
+                        Pepsa Pay could not load data bundles for this number.
+                        Check the number and try again.
+                      </Alert>
+                    )}
+                    {type === "data" &&
+                      !plans.isFetching &&
+                      plans.isSuccess &&
+                      plans.data.length === 0 && (
+                        <Alert tone="warning" title="No bundles returned">
+                          There are currently no selectable bundles for the
+                          detected network.
+                        </Alert>
+                      )}
+                    {utility && (
+                      <>
+                        <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-neutral-50 p-4">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                              Selected provider
+                            </p>
+                            <p className="mt-1 font-bold">
+                              {selectedBiller?.name ?? "Provider"}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setStage("provider");
+                              setBillerId("");
+                              setFields({});
+                            }}
+                          >
+                            Change
+                          </Button>
+                        </div>
+                        {billerFields.data?.map((field) => (
+                          <FormField
+                            key={field.name}
+                            label={`${field.label}${field.required ? " *" : ""}`}
+                          >
+                            <Input
+                              required={field.required}
+                              value={fields[field.name] ?? ""}
+                              onChange={(event) => {
+                                setFields((current) => ({
+                                  ...current,
+                                  [field.name]: event.target.value,
+                                }));
+                                setValidationReference("");
+                              }}
+                            />
+                          </FormField>
+                        ))}
+                      </>
+                    )}
+                    {type !== "data" && (
+                      <FormField label="Amount">
+                        <div className="relative">
+                          <span className="pointer-events-none absolute left-3 top-2.5 text-sm font-semibold text-muted">
+                            ₦
+                          </span>
+                          <Input
+                            className="pl-8 text-base font-semibold"
+                            type="number"
+                            min="1"
+                            step="1"
+                            placeholder="0.00"
+                            value={amount}
+                            onChange={(event) => setAmount(event.target.value)}
+                          />
+                        </div>
+                      </FormField>
+                    )}
+                    {type === "airtime" && (
+                      <div className="flex flex-wrap gap-2">
+                        {AIRTIME_AMOUNTS.map((value) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setAmount(String(value))}
+                            className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${Number(amount) === value ? "border-brand bg-brand-50 text-brand" : "border-border hover:border-brand-200 hover:bg-brand-50"}`}
+                          >
+                            ₦{value.toLocaleString()}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <VasHelpCard type={type} />
                 </div>
-                <VasHelpCard type={type} />
-              </div>
+              )
             )}
             {stage === "review" && (
               <div className="mx-auto max-w-lg">
@@ -1263,13 +1512,6 @@ function VasModalV2({
                     ? "Airtime and data sent to a wrong number may not be reversible."
                     : "Confirm the verified customer and service details before authorizing."}
                 </Alert>
-                <Button
-                  className="mt-4 w-full"
-                  onClick={() => setStage("authorize")}
-                >
-                  Continue to secure payment
-                  <ShieldCheck className="size-4" />
-                </Button>
               </div>
             )}
             {stage === "authorize" && !token && (
@@ -1354,6 +1596,28 @@ function SummaryRow({
     </div>
   );
 }
+function CatalogLoader({
+  label,
+  compact = false,
+}: {
+  label: string;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={`grid place-items-center rounded-xl border border-dashed border-border bg-neutral-50 text-center ${compact ? "min-h-24 p-4" : "mt-6 min-h-72 p-8"}`}
+      role="status"
+    >
+      <div>
+        <LoaderCircle className="mx-auto size-7 animate-spin text-brand" />
+        <p className="mt-3 text-sm font-semibold">{label}</p>
+        <p className="mt-1 text-xs text-muted">
+          Getting the latest information from Pepsa Pay.
+        </p>
+      </div>
+    </div>
+  );
+}
 function StepBack({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <button
@@ -1411,7 +1675,13 @@ function VasHelpCard({ type }: { type: VasType }) {
   );
 }
 
-export function VasModal({ open, close }: { open: boolean; close: () => void }) {
+export function VasModal({
+  open,
+  close,
+}: {
+  open: boolean;
+  close: () => void;
+}) {
   const [token, setToken] = useState("");
   const [type, setType] = useState("airtime");
   const [provider, setProvider] = useState("");

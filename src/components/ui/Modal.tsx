@@ -42,14 +42,14 @@ export function Modal({
     >
       <AriaModal
         className={cx(
-          "w-full rounded-2xl border border-white/20 bg-panel shadow-overlay outline-none",
+          "max-h-[calc(100dvh-2rem)] w-full overflow-hidden rounded-2xl border border-white/20 bg-panel shadow-overlay outline-none",
           modalWidths[size],
         )}
       >
-        <Dialog className="outline-none">
+        <Dialog className="flex max-h-[calc(100dvh-2rem)] flex-col outline-none">
           {({ close }) => (
             <>
-              <header className="flex items-start justify-between gap-4 border-b border-border p-5">
+              <header className="flex shrink-0 items-start justify-between gap-4 border-b border-border bg-panel p-5">
                 <div>
                   <Heading slot="title" className="text-lg font-semibold">
                     {title}
@@ -68,9 +68,11 @@ export function Modal({
                   </Button>
                 )}
               </header>
-              <div className="p-5">{children}</div>
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">
+                {children}
+              </div>
               {footer && (
-                <footer className="flex justify-end gap-2 border-t border-border p-4">
+                <footer className="flex shrink-0 justify-end gap-2 border-t border-border bg-panel p-4">
                   {footer}
                 </footer>
               )}

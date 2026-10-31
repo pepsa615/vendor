@@ -110,7 +110,7 @@ export async function apiRequest<T>(
 
 export async function apiDownload(path: string): Promise<Blob> {
   const headers = new Headers({
-    accept: "application/pdf,text/csv",
+    accept: "application/pdf,image/svg+xml,text/csv",
     "x-request-id": crypto.randomUUID(),
   });
   if (accessToken) headers.set("authorization", `Bearer ${accessToken}`);

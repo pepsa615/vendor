@@ -678,6 +678,25 @@
         ]
       }
     },
+    "/api/v1/people/dispatchers/{id}/location": {
+      "get": {
+        "operationId": "DispatchersController_location_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dispatchers"
+        ]
+      }
+    },
     "/api/v1/people/dispatchers/{id}/documents": {
       "post": {
         "operationId": "DispatchersController_document_v1",
@@ -1286,6 +1305,44 @@
     "/api/v1/account/wallet/statement": {
       "get": {
         "operationId": "AccountController_statement_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/wallet/transactions/{transactionId}": {
+      "get": {
+        "operationId": "AccountController_transaction_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/account/wallet/transactions/{transactionId}/receipt.{format}": {
+      "get": {
+        "operationId": "AccountController_receipt_v1",
         "parameters": [],
         "responses": {
           "200": {

@@ -45,6 +45,22 @@ export interface WalletTransaction {
   direction: string;
   status: string;
   type: string;
+  transfer_scope?: string | null;
+  charges?: string;
+  stamp_duty?: string;
+  balance_before?: string;
+  balance_after?: string;
+  provider_reference?: string | null;
+  provider_response_code?: string | null;
+  counterparty_account_number?: string | null;
+  destination?: {
+    account_number?: string;
+    bank_name?: string;
+    account_name?: string;
+  } | null;
+  executed_at?: string | null;
+  vendor_name?: string;
+  receipt_available?: boolean;
 }
 export interface Statement {
   data: WalletTransaction[];
