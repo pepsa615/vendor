@@ -27,6 +27,9 @@ const Operations = lazy(() => import("../pages/OperationsPage.tsx"));
 const Manifest = lazy(() => import("../pages/ManifestPage.tsx"));
 const OpenDispatch = lazy(() => import("../pages/OpenDispatchPage.tsx"));
 const Account = lazy(() => import("../pages/AccountPage.tsx"));
+const TransactionDetail = lazy(
+  () => import("../pages/TransactionDetailPage.tsx"),
+);
 const People = lazy(() => import("../pages/PeoplePage.tsx"));
 const Dispatchers = lazy(() => import("../pages/DispatchersPage.tsx"));
 const DispatcherForm = lazy(() => import("../pages/DispatcherFormPage.tsx"));
@@ -72,6 +75,10 @@ export const router = createBrowserRouter([
               { path: "/manifest", element: suspended(<Manifest />) },
               { path: "/open-dispatch", element: suspended(<OpenDispatch />) },
               { path: "/account", element: suspended(<Account />) },
+              {
+                path: "/account/transactions/:transactionId",
+                element: suspended(<TransactionDetail />),
+              },
               {
                 path: "/people",
                 element: suspended(<People />),
