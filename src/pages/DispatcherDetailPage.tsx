@@ -41,6 +41,8 @@ const detailRows = (profile: DispatcherRevision) => [
     `${profile.revenueSharePct}% rider / ${100 - Number(profile.revenueSharePct)}% vendor`,
   ],
   ["Guarantor", `${profile.guarantorName} · ${profile.guarantorPhone}`],
+  ["Guarantor NIN", profile.guarantorNinMasked ?? "Not supplied"],
+  ["Guarantor address", profile.guarantorAddress],
 ];
 
 export default function DispatcherDetailPage() {
@@ -334,6 +336,9 @@ export default function DispatcherDetailPage() {
                   homeAddress: data.get("homeAddress"),
                   state: data.get("state"),
                   city: data.get("city"),
+                  guarantorNin:
+                    String(data.get("guarantorNin") || "").trim() || undefined,
+                  guarantorAddress: data.get("guarantorAddress"),
                   revenueSharePct: Number(data.get("revenueSharePct")),
                 }),
               });
@@ -366,6 +371,25 @@ export default function DispatcherDetailPage() {
             options={NIGERIA_STATE_OPTIONS}
           />
           <EditField label="City" name="city" defaultValue={profile.city} />
+          <EditField
+            label="Guarantor NIN"
+            name="guarantorNin"
+            inputMode="numeric"
+            pattern="[0-9]{11}"
+            minLength={11}
+            maxLength={11}
+            required={!profile.guarantorNinMasked}
+            placeholder={
+              profile.guarantorNinMasked
+                ? "Leave blank to keep the verified NIN"
+                : "11-digit NIN"
+            }
+          />
+          <EditField
+            label="Guarantor address"
+            name="guarantorAddress"
+            defaultValue={profile.guarantorAddress}
+          />
           <EditField
             label="Revenue share (%)"
             name="revenueSharePct"

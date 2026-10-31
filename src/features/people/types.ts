@@ -56,7 +56,8 @@ export interface DispatcherRevision {
   guarantorName: string;
   guarantorPhone: string;
   guarantorEmail?: string;
-  guarantorAddress?: string;
+  guarantorNinMasked: string | null;
+  guarantorAddress: string;
   revenueSharePct: string;
   decisionReason?: string;
   correctionFields: string[];

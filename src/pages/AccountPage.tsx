@@ -1,13 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { parseDate } from "@internationalized/date";
 import {
+  ArrowLeft,
   ArrowDownToLine,
   Banknote,
-  CreditCard,
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  Gauge,
   Lightbulb,
+  LoaderCircle,
   Phone,
+  ReceiptText,
+  ShieldCheck,
   Send,
+  Smartphone,
   Tv,
+  Wifi,
+  Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -350,6 +360,7 @@ function WalletView() {
   const [modal, setModal] = useState<
     "fund" | "transfer" | "vas" | "pin" | null
   >(null);
+  const [vasType, setVasType] = useState<VasType>("airtime");
   if (summary.isLoading) return <Skeleton className="mt-6 h-48" />;
   if (!summary.data)
     return (
@@ -405,23 +416,44 @@ function WalletView() {
         </Card>
       </div>
       <Card>
-        <h2 className="font-semibold">Quick services</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            [Phone, "Airtime"],
-            [CreditCard, "Data"],
-            [Tv, "TV subscription"],
-            [Lightbulb, "Electricity"],
-          ].map(([Icon, label]) => (
-            <Button
-              key={String(label)}
-              variant="secondary"
-              onClick={() => setModal("vas")}
-            >
-              <Icon className="size-4" />
-              {String(label)}
-            </Button>
-          ))}
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="font-semibold">Pay &amp; recharge</h2>
+            <p className="mt-1 text-sm text-muted">
+              Everyday services paid directly from your Pepsa wallet.
+            </p>
+          </div>
+          <Badge tone="success" dot>
+            Secure wallet payment
+          </Badge>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {VAS_SERVICES.map(
+            ({ key, label, description, icon: Icon, accent }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setVasType(key);
+                  setModal("vas");
+                }}
+                className="group rounded-xl border border-border bg-panel p-4 text-left transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                <span
+                  className={`grid size-10 place-items-center rounded-xl ${accent}`}
+                >
+                  <Icon className="size-5" aria-hidden />
+                </span>
+                <span className="mt-4 flex items-center justify-between gap-2 font-semibold">
+                  {label}
+                  <ChevronRight className="size-4 text-muted transition group-hover:translate-x-0.5 group-hover:text-brand" />
+                </span>
+                <span className="mt-1 block text-xs leading-5 text-muted">
+                  {description}
+                </span>
+              </button>
+            ),
+          )}
         </div>
       </Card>
       <Card>
@@ -466,7 +498,11 @@ function WalletView() {
         </p>
       </Modal>
       <TransferModal open={modal === "transfer"} close={() => setModal(null)} />
-      <VasModal open={modal === "vas"} close={() => setModal(null)} />
+      <VasModalV2
+        open={modal === "vas"}
+        close={() => setModal(null)}
+        initialType={vasType}
+      />
       <PinModal open={modal === "pin"} close={() => setModal(null)} />
     </div>
   );
@@ -537,7 +573,9 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
             <FormField label="Bank">
               {selectedBank ? (
                 <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2">
-                  <span className="text-sm font-medium">{selectedBank.name}</span>
+                  <span className="text-sm font-medium">
+                    {selectedBank.name}
+                  </span>
                   <Button
                     type="button"
                     size="sm"
@@ -572,7 +610,9 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
                           }}
                         >
                           <span className="font-medium">{item.name}</span>
-                          <span className="text-xs text-muted">{item.code}</span>
+                          <span className="text-xs text-muted">
+                            {item.code}
+                          </span>
                         </button>
                       ))
                     )}
@@ -607,6 +647,50 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
   );
 }
 const MOBILE_NETWORKS = ["MTN", "AIRTEL", "GLO", "9MOBILE"] as const;
+type VasType = "airtime" | "data" | "electricity" | "cable_tv";
+type VasStage = "details" | "review" | "authorize" | "success";
+const VAS_SERVICES: Array<{
+  key: VasType;
+  label: string;
+  shortLabel: string;
+  description: string;
+  icon: typeof Phone;
+  accent: string;
+}> = [
+  {
+    key: "airtime",
+    label: "Airtime",
+    shortLabel: "Airtime",
+    description: "Top up any Nigerian mobile number.",
+    icon: Phone,
+    accent: "bg-emerald-50 text-emerald-700",
+  },
+  {
+    key: "data",
+    label: "Mobile data",
+    shortLabel: "Data",
+    description: "Choose a live bundle for any network.",
+    icon: Wifi,
+    accent: "bg-sky-50 text-sky-700",
+  },
+  {
+    key: "cable_tv",
+    label: "TV subscription",
+    shortLabel: "TV",
+    description: "Renew cable and streaming packages.",
+    icon: Tv,
+    accent: "bg-violet-50 text-violet-700",
+  },
+  {
+    key: "electricity",
+    label: "Electricity",
+    shortLabel: "Power",
+    description: "Pay prepaid and postpaid meter bills.",
+    icon: Lightbulb,
+    accent: "bg-amber-50 text-amber-700",
+  },
+];
+const AIRTIME_AMOUNTS = [100, 200, 500, 1000, 2000, 5000];
 
 function ChoiceButtons({
   label,
@@ -647,7 +731,687 @@ function ChoiceButtons({
   );
 }
 
-function VasModal({ open, close }: { open: boolean; close: () => void }) {
+function VasModalV2({
+  open,
+  close,
+  initialType,
+}: {
+  open: boolean;
+  close: () => void;
+  initialType: VasType;
+}) {
+  type CatalogItem = {
+    id?: string;
+    productId?: string;
+    name: string;
+    amount?: string;
+  };
+  type BillerField = {
+    name: string;
+    label: string;
+    required?: boolean;
+    type?: string;
+  };
+  type Validation = {
+    validation_reference: string;
+    customer_name?: string;
+    customerName?: string;
+    name?: string;
+  };
+  const client = useQueryClient();
+  const [stage, setStage] = useState<VasStage>("details");
+  const [type, setType] = useState<VasType>(initialType);
+  const [token, setToken] = useState("");
+  const [provider, setProvider] = useState("");
+  const [providerManual, setProviderManual] = useState(false);
+  const [beneficiary, setBeneficiary] = useState("");
+  const [amount, setAmount] = useState("");
+  const [productId, setProductId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [billerId, setBillerId] = useState("");
+  const [fields, setFields] = useState<Record<string, string>>({});
+  const [validationReference, setValidationReference] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [formError, setFormError] = useState("");
+  const mobile = type === "airtime" || type === "data";
+  const utility = type === "electricity" || type === "cable_tv";
+  const service = VAS_SERVICES.find((item) => item.key === type)!;
+
+  useEffect(() => {
+    if (!open) return;
+    setType(initialType);
+    setStage("details");
+    setToken("");
+    setProvider("");
+    setProviderManual(false);
+    setBeneficiary("");
+    setAmount("");
+    setProductId("");
+    setCategoryId("");
+    setBillerId("");
+    setFields({});
+    setValidationReference("");
+    setCustomerName("");
+    setFormError("");
+  }, [initialType, open]);
+
+  const detected = useQuery({
+    queryKey: ["vas-network", beneficiary],
+    queryFn: () =>
+      apiRequest<{ network: string }>(
+        `/account/vas/catalog?path=${encodeURIComponent(`networks/detect?phone=${beneficiary}`)}`,
+      ),
+    enabled: open && mobile && beneficiary.replace(/\D/g, "").length >= 10,
+  });
+  useEffect(() => {
+    if (!mobile || providerManual) return;
+    const network = detected.data?.network?.toUpperCase();
+    const match = MOBILE_NETWORKS.find((item) => item === network);
+    if (match) setProvider(match);
+  }, [detected.data?.network, mobile, providerManual]);
+  const plans = useQuery({
+    queryKey: ["vas-plans", beneficiary],
+    queryFn: () =>
+      apiRequest<CatalogItem[]>(
+        `/account/vas/catalog?path=${encodeURIComponent(`data-plans?phone=${beneficiary}`)}`,
+      ),
+    enabled:
+      open && type === "data" && beneficiary.replace(/\D/g, "").length >= 10,
+  });
+  const categories = useQuery({
+    queryKey: ["vas-categories"],
+    queryFn: () =>
+      apiRequest<CatalogItem[]>(
+        "/account/vas/catalog?path=billers%2Fcategories",
+      ),
+    enabled: open && utility,
+  });
+  const matchedCategories = (categories.data ?? []).filter((item) => {
+    const name = item.name.toLowerCase();
+    return type === "electricity"
+      ? /electric|power|energy/.test(name)
+      : /cable|television|\btv\b|entertain/.test(name);
+  });
+  const visibleCategories = matchedCategories.length
+    ? matchedCategories
+    : (categories.data ?? []);
+  const billers = useQuery({
+    queryKey: ["vas-billers", categoryId],
+    queryFn: () =>
+      apiRequest<CatalogItem[]>(
+        `/account/vas/catalog?path=${encodeURIComponent(`billers/categories/${categoryId}`)}`,
+      ),
+    enabled: open && utility && Boolean(categoryId),
+  });
+  const billerFields = useQuery({
+    queryKey: ["vas-biller-fields", billerId],
+    queryFn: () =>
+      apiRequest<BillerField[]>(
+        `/account/vas/catalog?path=${encodeURIComponent(`billers/${billerId}/fields`)}`,
+      ),
+    enabled: open && utility && Boolean(billerId),
+  });
+  const validate = useMutation({
+    mutationFn: () =>
+      apiRequest<Validation>("/account/vas/validate", {
+        method: "POST",
+        body: JSON.stringify({
+          billerId,
+          beneficiaryIdentifier: beneficiary,
+          fields,
+        }),
+      }),
+    onSuccess: (result) => {
+      setValidationReference(result.validation_reference);
+      setCustomerName(
+        result.customer_name ?? result.customerName ?? result.name ?? "",
+      );
+      setStage("review");
+    },
+    onError: () =>
+      setFormError(
+        `We could not verify this ${type === "electricity" ? "meter" : "smartcard"}. Check the details and try again.`,
+      ),
+  });
+  const buy = useMutation({
+    mutationFn: () =>
+      apiRequest("/account/vas/purchases", {
+        method: "POST",
+        headers: { "idempotency-key": idempotency() },
+        body: JSON.stringify({
+          productType: type,
+          productProvider: provider || detected.data?.network || billerId,
+          beneficiaryIdentifier: beneficiary,
+          amountMinor: Math.round(Number(amount) * 100),
+          productId: productId || undefined,
+          billerId: billerId || undefined,
+          validationReference: validationReference || undefined,
+          customerFields: utility ? fields : undefined,
+          challengeToken: token,
+        }),
+      }),
+    onSuccess: () => {
+      setStage("success");
+      void client.invalidateQueries({ queryKey: ["wallet-summary"] });
+      void client.invalidateQueries({ queryKey: ["wallet-statement"] });
+    },
+  });
+  useEffect(() => {
+    if (stage === "authorize" && token && buy.status === "idle") buy.mutate();
+  }, [stage, token, buy.status]);
+
+  const selectedPlan = (plans.data ?? []).find(
+    (item) => item.productId === productId,
+  );
+  const selectedBiller = (billers.data ?? []).find(
+    (item) => item.id === billerId,
+  );
+  const amountMinor = Math.round(Number(amount) * 100);
+  const identifierLabel =
+    type === "electricity"
+      ? "Meter number"
+      : type === "cable_tv"
+        ? "Smartcard or customer number"
+        : "Mobile number";
+  const canContinue =
+    beneficiary.replace(/\s/g, "").length >= (mobile ? 10 : 4) &&
+    amountMinor > 0 &&
+    (mobile
+      ? Boolean(provider || detected.data?.network)
+      : Boolean(billerId)) &&
+    (type !== "data" || Boolean(productId)) &&
+    (!utility ||
+      (billerFields.data ?? []).every(
+        (field) => !field.required || Boolean(fields[field.name]?.trim()),
+      ));
+  const changeType = (next: VasType) => {
+    setType(next);
+    setProvider("");
+    setProviderManual(false);
+    setProductId("");
+    setAmount("");
+    setCategoryId("");
+    setBillerId("");
+    setFields({});
+    setValidationReference("");
+    setCustomerName("");
+    setFormError("");
+  };
+  const continueToReview = () => {
+    setFormError("");
+    if (!canContinue)
+      return setFormError("Complete all required details before you continue.");
+    if (utility) validate.mutate();
+    else setStage("review");
+  };
+
+  return (
+    <Modal
+      isOpen={open}
+      onOpenChange={(value) => !value && close()}
+      title="Pay & recharge"
+      description="Fast, secure payments from your Pepsa wallet"
+      size="xl"
+    >
+      {stage === "success" ? (
+        <div className="mx-auto max-w-md py-6 text-center">
+          <span className="mx-auto grid size-16 place-items-center rounded-full bg-success-50 text-success-700">
+            <CheckCircle2 className="size-8" />
+          </span>
+          <h3 className="mt-5 text-xl font-bold">Payment submitted</h3>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Your {service.label.toLowerCase()} payment is being processed. Track
+            its final status in your wallet statement.
+          </p>
+          <div className="mt-6 space-y-3 rounded-xl border border-border bg-neutral-50 p-4 text-left text-sm">
+            <SummaryRow label="Service" value={service.label} />
+            <SummaryRow label="Recipient" value={beneficiary} />
+            <SummaryRow label="Amount" value={ngn(amountMinor)} strong />
+          </div>
+          <Button className="mt-6 w-full" onClick={close}>
+            Done
+          </Button>
+        </div>
+      ) : (
+        <div className="grid min-h-[30rem] gap-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
+          <aside className="rounded-xl bg-neutral-50 p-3">
+            <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+              Choose a service
+            </p>
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+              {VAS_SERVICES.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    disabled={stage !== "details"}
+                    onClick={() => changeType(item.key)}
+                    className={`flex items-center gap-3 rounded-xl border p-3 text-left text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${item.key === type ? "border-brand-200 bg-panel text-brand shadow-sm" : "border-transparent hover:bg-panel"} disabled:opacity-60`}
+                  >
+                    <span
+                      className={`grid size-9 shrink-0 place-items-center rounded-lg ${item.accent}`}
+                    >
+                      <Icon className="size-4" />
+                    </span>
+                    {item.shortLabel}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-4 hidden border-t border-border px-2 pt-4 text-xs leading-5 text-muted lg:block">
+              <ShieldCheck className="mb-2 size-5 text-brand" />
+              Review every detail before your transaction PIN is requested.
+            </div>
+          </aside>
+          <div className="min-w-0">
+            {stage === "details" && (
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_16rem]">
+                <div className="space-y-5">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`grid size-11 place-items-center rounded-xl ${service.accent}`}
+                    >
+                      {type === "airtime" ? (
+                        <Phone className="size-5" />
+                      ) : type === "data" ? (
+                        <Wifi className="size-5" />
+                      ) : type === "electricity" ? (
+                        <Zap className="size-5" />
+                      ) : (
+                        <Tv className="size-5" />
+                      )}
+                    </span>
+                    <div>
+                      <h3 className="text-lg font-bold">{service.label}</h3>
+                      <p className="text-sm text-muted">
+                        {service.description}
+                      </p>
+                    </div>
+                  </div>
+                  {formError && (
+                    <Alert tone="danger" title="Check your details">
+                      {formError}
+                    </Alert>
+                  )}
+                  <FormField label={identifierLabel}>
+                    <div className="relative">
+                      <Smartphone className="pointer-events-none absolute left-3 top-3 size-4 text-muted" />
+                      <Input
+                        className="pl-10"
+                        inputMode="numeric"
+                        placeholder={
+                          mobile
+                            ? "0801 234 5678"
+                            : `Enter ${identifierLabel.toLowerCase()}`
+                        }
+                        value={beneficiary}
+                        onChange={(event) => {
+                          setBeneficiary(event.target.value);
+                          setValidationReference("");
+                          if (mobile) setProviderManual(false);
+                        }}
+                      />
+                    </div>
+                  </FormField>
+                  {mobile && (
+                    <ChoiceButtons
+                      label="Network"
+                      selectedKey={provider}
+                      onSelect={(key) => {
+                        setProvider(key);
+                        setProviderManual(true);
+                      }}
+                      options={MOBILE_NETWORKS.map((network) => ({
+                        key: network,
+                        label: network,
+                      }))}
+                      helper={
+                        detected.isFetching
+                          ? "Detecting network…"
+                          : detected.data?.network
+                            ? `Detected ${detected.data.network.toUpperCase()}. Change it if this number was ported.`
+                            : "Enter a number for automatic detection, or choose the network."
+                      }
+                    />
+                  )}
+                  {type === "data" && (
+                    <Select
+                      label="Data bundle"
+                      placeholder={
+                        plans.isLoading
+                          ? "Loading live bundles…"
+                          : "Choose a bundle"
+                      }
+                      options={(plans.data ?? []).map((plan) => ({
+                        key: plan.productId ?? "",
+                        label: `${plan.name}${plan.amount ? ` — ${moneyString(plan.amount)}` : ""}`,
+                        disabled: !plan.productId,
+                      }))}
+                      selectedKey={productId || null}
+                      onSelectionChange={(key) => {
+                        const selected = String(key);
+                        setProductId(selected);
+                        const plan = plans.data?.find(
+                          (item) => item.productId === selected,
+                        );
+                        if (plan?.amount) setAmount(plan.amount);
+                      }}
+                    />
+                  )}
+                  {utility && (
+                    <>
+                      <ChoiceButtons
+                        label={
+                          type === "electricity"
+                            ? "Distribution company"
+                            : "TV provider category"
+                        }
+                        selectedKey={categoryId}
+                        onSelect={(key) => {
+                          setCategoryId(key);
+                          setBillerId("");
+                          setFields({});
+                        }}
+                        options={visibleCategories
+                          .filter((item) => item.id)
+                          .map((item) => ({ key: item.id!, label: item.name }))}
+                        helper={
+                          categories.isLoading
+                            ? "Loading providers…"
+                            : undefined
+                        }
+                      />
+                      {categoryId && (
+                        <ChoiceButtons
+                          label="Provider or package"
+                          selectedKey={billerId}
+                          onSelect={(key) => {
+                            setBillerId(key);
+                            setFields({});
+                            setValidationReference("");
+                          }}
+                          options={(billers.data ?? [])
+                            .filter((item) => item.id)
+                            .map((item) => ({
+                              key: item.id!,
+                              label: item.name,
+                            }))}
+                          helper={
+                            billers.isLoading
+                              ? "Loading available options…"
+                              : undefined
+                          }
+                        />
+                      )}
+                      {billerFields.data?.map((field) => (
+                        <FormField
+                          key={field.name}
+                          label={`${field.label}${field.required ? " *" : ""}`}
+                        >
+                          <Input
+                            required={field.required}
+                            value={fields[field.name] ?? ""}
+                            onChange={(event) => {
+                              setFields((current) => ({
+                                ...current,
+                                [field.name]: event.target.value,
+                              }));
+                              setValidationReference("");
+                            }}
+                          />
+                        </FormField>
+                      ))}
+                    </>
+                  )}
+                  {type !== "data" && (
+                    <FormField label="Amount">
+                      <div className="relative">
+                        <span className="pointer-events-none absolute left-3 top-2.5 text-sm font-semibold text-muted">
+                          ₦
+                        </span>
+                        <Input
+                          className="pl-8 text-base font-semibold"
+                          type="number"
+                          min="1"
+                          step="1"
+                          placeholder="0.00"
+                          value={amount}
+                          onChange={(event) => setAmount(event.target.value)}
+                        />
+                      </div>
+                    </FormField>
+                  )}
+                  {type === "airtime" && (
+                    <div className="flex flex-wrap gap-2">
+                      {AIRTIME_AMOUNTS.map((value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setAmount(String(value))}
+                          className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${Number(amount) === value ? "border-brand bg-brand-50 text-brand" : "border-border hover:border-brand-200 hover:bg-brand-50"}`}
+                        >
+                          ₦{value.toLocaleString()}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <Button
+                    className="w-full"
+                    disabled={!canContinue}
+                    loading={validate.isPending}
+                    onClick={continueToReview}
+                  >
+                    {utility ? "Verify details" : "Review payment"}
+                    <ChevronRight className="size-4" />
+                  </Button>
+                </div>
+                <VasHelpCard type={type} />
+              </div>
+            )}
+            {stage === "review" && (
+              <div className="mx-auto max-w-lg">
+                <StepBack
+                  onClick={() => setStage("details")}
+                  label="Edit details"
+                />
+                <div className="mt-4 rounded-2xl border border-border bg-neutral-50 p-5">
+                  <div className="flex items-center gap-3 border-b border-border pb-4">
+                    <span
+                      className={`grid size-11 place-items-center rounded-xl ${service.accent}`}
+                    >
+                      <ReceiptText className="size-5" />
+                    </span>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                        Review payment
+                      </p>
+                      <h3 className="font-bold">{service.label}</h3>
+                    </div>
+                  </div>
+                  <div className="space-y-3 py-4 text-sm">
+                    <SummaryRow label={identifierLabel} value={beneficiary} />
+                    <SummaryRow
+                      label="Provider"
+                      value={
+                        selectedBiller?.name ??
+                        provider ??
+                        detected.data?.network ??
+                        "—"
+                      }
+                    />
+                    {selectedPlan && (
+                      <SummaryRow label="Bundle" value={selectedPlan.name} />
+                    )}
+                    {customerName && (
+                      <SummaryRow label="Customer" value={customerName} />
+                    )}
+                  </div>
+                  <div className="flex items-end justify-between border-t border-border pt-4">
+                    <span className="text-sm text-muted">Total</span>
+                    <span className="text-2xl font-bold">
+                      {ngn(amountMinor)}
+                    </span>
+                  </div>
+                </div>
+                <Alert
+                  className="mt-4"
+                  tone="warning"
+                  title="Please check carefully"
+                >
+                  {mobile
+                    ? "Airtime and data sent to a wrong number may not be reversible."
+                    : "Confirm the verified customer and service details before authorizing."}
+                </Alert>
+                <Button
+                  className="mt-4 w-full"
+                  onClick={() => setStage("authorize")}
+                >
+                  Continue to secure payment
+                  <ShieldCheck className="size-4" />
+                </Button>
+              </div>
+            )}
+            {stage === "authorize" && !token && (
+              <div className="mx-auto max-w-md">
+                <StepBack
+                  onClick={() => setStage("review")}
+                  label="Back to review"
+                />
+                <div className="mt-5 text-center">
+                  <span className="mx-auto grid size-12 place-items-center rounded-full bg-brand-50 text-brand">
+                    <ShieldCheck className="size-6" />
+                  </span>
+                  <h3 className="mt-3 text-lg font-bold">
+                    Authorize {ngn(amountMinor)}
+                  </h3>
+                  <p className="mt-1 text-sm text-muted">
+                    Enter your transaction PIN to pay securely.
+                  </p>
+                </div>
+                <div className="mt-5">
+                  <PinStep purpose="VAS" onToken={setToken} />
+                </div>
+              </div>
+            )}
+            {stage === "authorize" && token && (
+              <div className="mx-auto max-w-md py-10 text-center">
+                {buy.isError ? (
+                  <>
+                    <Alert tone="danger" title="Payment could not be completed">
+                      Your wallet was not charged. Return to review and try
+                      again.
+                    </Alert>
+                    <Button
+                      className="mt-4 w-full"
+                      variant="outline"
+                      onClick={() => {
+                        setToken("");
+                        setStage("review");
+                        buy.reset();
+                      }}
+                    >
+                      Back to review
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <LoaderCircle className="mx-auto size-10 animate-spin text-brand" />
+                    <h3 className="mt-4 text-lg font-bold">
+                      Processing payment
+                    </h3>
+                    <p className="mt-1 text-sm text-muted">
+                      Please keep this window open.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+  strong = false,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <span className="text-muted">{label}</span>
+      <span
+        className={`max-w-[65%] text-right ${strong ? "font-bold" : "font-semibold"}`}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+function StepBack({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-brand"
+    >
+      <ArrowLeft className="size-4" />
+      {label}
+    </button>
+  );
+}
+function VasHelpCard({ type }: { type: VasType }) {
+  const content = {
+    airtime: [
+      Gauge,
+      "Instant top-up",
+      "The network is detected from the number. Check it if the line was recently ported.",
+    ],
+    data: [
+      Wifi,
+      "Live bundles",
+      "Available packages and prices come directly from the current service catalog.",
+    ],
+    electricity: [
+      Zap,
+      "Meter verification",
+      "We verify meter details before payment. Prepaid tokens are delivered by the provider.",
+    ],
+    cable_tv: [
+      Tv,
+      "Smartcard verification",
+      "Confirm the customer or smartcard details and package before authorizing payment.",
+    ],
+  } as const;
+  const [Icon, title, description] = content[type];
+  return (
+    <aside className="h-fit rounded-xl border border-brand-100 bg-brand-50/60 p-4">
+      <Icon className="size-5 text-brand" />
+      <p className="mt-3 text-sm font-semibold">{title}</p>
+      <p className="mt-1 text-xs leading-5 text-muted">{description}</p>
+      <div className="mt-4 border-t border-brand-100 pt-2">
+        {[
+          "Review before payment",
+          "PIN protected",
+          "Status in wallet statement",
+        ].map((item) => (
+          <p key={item} className="mt-2 flex items-center gap-2 text-xs">
+            <Check className="size-3.5 text-success-700" />
+            {item}
+          </p>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+export function VasModal({ open, close }: { open: boolean; close: () => void }) {
   const [token, setToken] = useState("");
   const [type, setType] = useState("airtime");
   const [provider, setProvider] = useState("");

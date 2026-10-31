@@ -16,6 +16,16 @@ describe("DispatcherFormPage", () => {
     expect(screen.getByLabelText("Vehicle brand")).toBeRequired();
     expect(screen.getByLabelText("Plate number")).toBeRequired();
     expect(
+      screen.getByLabelText("National Identification Number (NIN)", {
+        selector: 'input[name="guarantorNin"]',
+      }),
+    ).toBeRequired();
+    expect(
+      screen.getByLabelText("Address", {
+        selector: 'input[name="guarantorAddress"]',
+      }),
+    ).toBeRequired();
+    expect(
       screen.getByRole("button", { name: "Submit for review" }),
     ).toBeDisabled();
   });
