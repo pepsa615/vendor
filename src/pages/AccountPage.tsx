@@ -773,12 +773,6 @@ function VasModalV2({
     name: string;
     amount?: string;
   };
-  type BillerField = {
-    name: string;
-    label: string;
-    required?: boolean;
-    type?: string;
-  };
   type Validation = {
     validation_reference: string;
     customer_name?: string;
@@ -795,7 +789,6 @@ function VasModalV2({
   const [productId, setProductId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [billerId, setBillerId] = useState("");
-  const [fields, setFields] = useState<Record<string, string>>({});
   const [validationReference, setValidationReference] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [formError, setFormError] = useState("");
@@ -819,7 +812,6 @@ function VasModalV2({
     setProductId("");
     setCategoryId("");
     setBillerId("");
-    setFields({});
     setValidationReference("");
     setCustomerName("");
     setFormError("");
@@ -853,7 +845,7 @@ function VasModalV2({
     if (!mobile) return;
     const network = detected.data?.network?.toUpperCase();
     if (network) setProvider(network);
-  }, [detected.data?.network, mobile]);
+  }, [detected.data?.network, mobile, type]);
   const plans = useQuery({
     queryKey: ["vas-plans", beneficiary],
     queryFn: async () => {
@@ -920,45 +912,6 @@ function VasModalV2({
       ),
     enabled: open && utility && Boolean(categoryId),
   });
-  const billerFields = useQuery({
-    queryKey: ["vas-biller-fields", billerId],
-    queryFn: async () => {
-      const items = await apiRequest<Record<string, unknown>[]>(
-        `/account/vas/catalog?path=${encodeURIComponent(`billers/${billerId}/fields`)}`,
-      );
-      return items
-        .map((item): BillerField => {
-          const name =
-            catalogValue(item, [
-              "name",
-              "fieldName",
-              "field_name",
-              "key",
-              "id",
-            ]) ?? "";
-          return {
-            name,
-            label:
-              catalogValue(item, [
-                "label",
-                "displayName",
-                "display_name",
-                "fieldLabel",
-                "field_label",
-                "title",
-              ]) ?? name,
-            required: Boolean(
-              item.required ?? item.isRequired ?? item.is_required ?? false,
-            ),
-            type:
-              catalogValue(item, ["type", "fieldType", "field_type"]) ??
-              "string",
-          };
-        })
-        .filter((item) => item.name && item.label);
-    },
-    enabled: open && utility && Boolean(billerId),
-  });
   const validate = useMutation({
     mutationFn: async () => {
       const response = await apiRequest<Validation & Record<string, unknown>>(
@@ -968,7 +921,7 @@ function VasModalV2({
           body: JSON.stringify({
             billerId,
             beneficiaryIdentifier: beneficiary,
-            fields,
+            amountMinor,
           }),
         },
       );
@@ -1022,7 +975,6 @@ function VasModalV2({
           productId: productId || undefined,
           billerId: billerId || undefined,
           validationReference: validationReference || undefined,
-          customerFields: utility ? fields : undefined,
           challengeToken: token,
         }),
       }),
@@ -1039,6 +991,19 @@ function VasModalV2({
   const selectedPlan = (plans.data ?? []).find(
     (item) => item.productId === productId,
   );
+  const networkPlans = (plans.data ?? []).filter((item) =>
+    `${item.name} ${item.productId ?? ""}`
+      .toUpperCase()
+      .includes(provider.toUpperCase()),
+  );
+  const providerWasOverridden =
+    Boolean(provider) &&
+    provider.toUpperCase() !== detected.data?.network?.toUpperCase();
+  const visiblePlans = providerWasOverridden
+    ? networkPlans
+    : networkPlans.length
+      ? networkPlans
+      : (plans.data ?? []);
   const selectedBiller = (billers.data ?? []).find(
     (item) => item.id === billerId,
   );
@@ -1062,11 +1027,7 @@ function VasModalV2({
     (mobile
       ? Boolean(provider || detected.data?.network)
       : Boolean(billerId)) &&
-    (type !== "data" || Boolean(productId)) &&
-    (!utility ||
-      (billerFields.data ?? []).every(
-        (field) => !field.required || Boolean(fields[field.name]?.trim()),
-      ));
+    (type !== "data" || Boolean(productId));
   const changeType = (next: VasType) => {
     setType(next);
     setStage(
@@ -1077,7 +1038,6 @@ function VasModalV2({
     setAmount("");
     setCategoryId("");
     setBillerId("");
-    setFields({});
     setValidationReference("");
     setCustomerName("");
     setFormError("");
@@ -1102,7 +1062,7 @@ function VasModalV2({
         stage === "details" ? (
           <Button
             className="w-full sm:w-auto sm:min-w-52"
-            disabled={!canContinue || (utility && billerFields.isLoading)}
+            disabled={!canContinue}
             loading={validate.isPending}
             onClick={continueToReview}
           >
@@ -1224,7 +1184,6 @@ function VasModalV2({
                           type="button"
                           onClick={() => {
                             setBillerId(item.id ?? "");
-                            setFields({});
                             setValidationReference("");
                             setStage("details");
                           }}
@@ -1253,74 +1212,72 @@ function VasModalV2({
                 )}
               </div>
             )}
-            {stage === "details" && utility && billerFields.isLoading ? (
-              <CatalogLoader label="Preparing provider fields…" />
-            ) : (
-              stage === "details" && (
-                <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_16rem]">
-                  <div className="space-y-5">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`grid size-11 place-items-center rounded-xl ${service.accent}`}
-                      >
-                        {type === "airtime" ? (
-                          <Phone className="size-5" />
-                        ) : type === "data" ? (
-                          <Wifi className="size-5" />
-                        ) : type === "electricity" ? (
-                          <Zap className="size-5" />
-                        ) : (
-                          <Tv className="size-5" />
-                        )}
-                      </span>
-                      <div>
-                        <h3 className="text-lg font-bold">{service.label}</h3>
-                        <p className="text-sm text-muted">
-                          {service.description}
-                        </p>
-                      </div>
+            {stage === "details" && (
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_16rem]">
+                <div className="space-y-5">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`grid size-11 place-items-center rounded-xl ${service.accent}`}
+                    >
+                      {type === "airtime" ? (
+                        <Phone className="size-5" />
+                      ) : type === "data" ? (
+                        <Wifi className="size-5" />
+                      ) : type === "electricity" ? (
+                        <Zap className="size-5" />
+                      ) : (
+                        <Tv className="size-5" />
+                      )}
+                    </span>
+                    <div>
+                      <h3 className="text-lg font-bold">{service.label}</h3>
+                      <p className="text-sm text-muted">
+                        {service.description}
+                      </p>
                     </div>
-                    {formError && (
-                      <Alert tone="danger" title="Check your details">
-                        {formError}
-                      </Alert>
-                    )}
-                    <FormField label={identifierLabel}>
-                      <div className="relative">
-                        <Smartphone className="pointer-events-none absolute left-3 top-3 size-4 text-muted" />
-                        <Input
-                          className="pl-10"
-                          inputMode="numeric"
-                          placeholder={
-                            mobile
-                              ? "0801 234 5678"
-                              : `Enter ${identifierLabel.toLowerCase()}`
+                  </div>
+                  {formError && (
+                    <Alert tone="danger" title="Check your details">
+                      {formError}
+                    </Alert>
+                  )}
+                  <FormField label={identifierLabel}>
+                    <div className="relative">
+                      <Smartphone className="pointer-events-none absolute left-3 top-3 size-4 text-muted" />
+                      <Input
+                        className="pl-10"
+                        inputMode="numeric"
+                        placeholder={
+                          mobile
+                            ? "0801 234 5678"
+                            : `Enter ${identifierLabel.toLowerCase()}`
+                        }
+                        value={beneficiary}
+                        onChange={(event) => {
+                          setBeneficiary(event.target.value);
+                          setValidationReference("");
+                          if (mobile) {
+                            setProvider("");
+                            setProductId("");
+                            if (type === "data") setAmount("");
                           }
-                          value={beneficiary}
-                          onChange={(event) => {
-                            setBeneficiary(event.target.value);
-                            setValidationReference("");
-                            if (mobile) {
-                              setProvider("");
-                              setProductId("");
-                              if (type === "data") setAmount("");
-                            }
-                          }}
-                        />
-                      </div>
-                    </FormField>
-                    {mobile &&
-                      beneficiary.replace(/\D/g, "").length >= 10 &&
-                      (detected.isFetching ? (
-                        <CatalogLoader
-                          label="Detecting mobile network…"
-                          compact
-                        />
-                      ) : detected.isError ? (
-                        <Alert tone="danger" title="Network not detected">
-                          Check the mobile number and try again.
-                        </Alert>
-                      ) : detected.data?.network ? (
+                        }}
+                      />
+                    </div>
+                  </FormField>
+                  {mobile &&
+                    beneficiary.replace(/\D/g, "").length >= 10 &&
+                    (detected.isFetching ? (
+                      <CatalogLoader
+                        label="Detecting mobile network…"
+                        compact
+                      />
+                    ) : detected.isError ? (
+                      <Alert tone="danger" title="Network not detected">
+                        Check the mobile number and try again.
+                      </Alert>
+                    ) : detected.data?.network ? (
+                      <>
                         <div className="flex items-center justify-between rounded-xl border border-brand-100 bg-brand-50/60 p-4">
                           <div>
                             <p className="text-xs font-semibold uppercase tracking-wide text-muted">
@@ -1332,131 +1289,126 @@ function VasModalV2({
                           </div>
                           <CheckCircle2 className="size-5 text-success-700" />
                         </div>
-                      ) : null)}
-                    {type === "data" && plans.isFetching && (
-                      <CatalogLoader
-                        label="Fetching available data bundles…"
-                        compact
-                      />
-                    )}
-                    {type === "data" && !plans.isFetching && plans.data && (
-                      <Select
-                        label="Data bundle"
-                        placeholder={
-                          plans.isLoading
-                            ? "Loading live bundles…"
-                            : "Choose a bundle"
-                        }
-                        options={(plans.data ?? []).map((plan) => ({
-                          key: plan.productId ?? "",
-                          label: `${plan.name}${plan.amount ? ` — ${moneyString(plan.amount)}` : ""}`,
-                          disabled: !plan.productId,
-                        }))}
-                        selectedKey={productId || null}
-                        onSelectionChange={(key) => {
-                          const selected = String(key);
-                          setProductId(selected);
-                          const plan = plans.data?.find(
-                            (item) => item.productId === selected,
-                          );
-                          if (plan?.amount) setAmount(plan.amount);
-                        }}
-                      />
-                    )}
-                    {type === "data" && plans.isError && (
-                      <Alert tone="danger" title="Bundles unavailable">
-                        Pepsa Pay could not load data bundles for this number.
-                        Check the number and try again.
+                        <ChoiceButtons
+                          label="Network provider"
+                          selectedKey={provider}
+                          onSelect={(network) => {
+                            setProvider(network);
+                            setProductId("");
+                            if (type === "data") setAmount("");
+                          }}
+                          options={MOBILE_NETWORKS.map((network) => ({
+                            key: network,
+                            label: network,
+                          }))}
+                          helper="Use the detected network or change it if the number has been ported."
+                        />
+                      </>
+                    ) : null)}
+                  {type === "data" && plans.isFetching && (
+                    <CatalogLoader
+                      label="Fetching available data bundles…"
+                      compact
+                    />
+                  )}
+                  {type === "data" && !plans.isFetching && plans.data && (
+                    <Select
+                      label="Data bundle"
+                      placeholder={
+                        plans.isLoading
+                          ? "Loading live bundles…"
+                          : "Choose a bundle"
+                      }
+                      options={visiblePlans.map((plan) => ({
+                        key: plan.productId ?? "",
+                        label: `${plan.name}${plan.amount ? ` — ${moneyString(plan.amount)}` : ""}`,
+                        disabled: !plan.productId,
+                      }))}
+                      selectedKey={productId || null}
+                      onSelectionChange={(key) => {
+                        const selected = String(key);
+                        setProductId(selected);
+                        const plan = plans.data?.find(
+                          (item) => item.productId === selected,
+                        );
+                        if (plan?.amount) setAmount(plan.amount);
+                      }}
+                    />
+                  )}
+                  {type === "data" && plans.isError && (
+                    <Alert tone="danger" title="Bundles unavailable">
+                      Pepsa Pay could not load data bundles for this number.
+                      Check the number and try again.
+                    </Alert>
+                  )}
+                  {type === "data" &&
+                    !plans.isFetching &&
+                    plans.isSuccess &&
+                    visiblePlans.length === 0 && (
+                      <Alert tone="warning" title="No bundles returned">
+                        There are currently no selectable bundles for the
+                        selected network.
                       </Alert>
                     )}
-                    {type === "data" &&
-                      !plans.isFetching &&
-                      plans.isSuccess &&
-                      plans.data.length === 0 && (
-                        <Alert tone="warning" title="No bundles returned">
-                          There are currently no selectable bundles for the
-                          detected network.
-                        </Alert>
-                      )}
-                    {utility && (
-                      <>
-                        <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-neutral-50 p-4">
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                              Selected provider
-                            </p>
-                            <p className="mt-1 font-bold">
-                              {selectedBiller?.name ?? "Provider"}
-                            </p>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              setStage("provider");
-                              setBillerId("");
-                              setFields({});
-                            }}
-                          >
-                            Change
-                          </Button>
+                  {utility && (
+                    <>
+                      <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-neutral-50 p-4">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                            Selected provider
+                          </p>
+                          <p className="mt-1 font-bold">
+                            {selectedBiller?.name ?? "Provider"}
+                          </p>
                         </div>
-                        {billerFields.data?.map((field) => (
-                          <FormField
-                            key={field.name}
-                            label={`${field.label}${field.required ? " *" : ""}`}
-                          >
-                            <Input
-                              required={field.required}
-                              value={fields[field.name] ?? ""}
-                              onChange={(event) => {
-                                setFields((current) => ({
-                                  ...current,
-                                  [field.name]: event.target.value,
-                                }));
-                                setValidationReference("");
-                              }}
-                            />
-                          </FormField>
-                        ))}
-                      </>
-                    )}
-                    {type !== "data" && (
-                      <FormField label="Amount">
-                        <div className="relative">
-                          <span className="pointer-events-none absolute left-3 top-2.5 text-sm font-semibold text-muted">
-                            ₦
-                          </span>
-                          <Input
-                            className="pl-8 text-base font-semibold"
-                            type="number"
-                            min="1"
-                            step="1"
-                            placeholder="0.00"
-                            value={amount}
-                            onChange={(event) => setAmount(event.target.value)}
-                          />
-                        </div>
-                      </FormField>
-                    )}
-                    {type === "airtime" && (
-                      <div className="flex flex-wrap gap-2">
-                        {AIRTIME_AMOUNTS.map((value) => (
-                          <button
-                            key={value}
-                            type="button"
-                            onClick={() => setAmount(String(value))}
-                            className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${Number(amount) === value ? "border-brand bg-brand-50 text-brand" : "border-border hover:border-brand-200 hover:bg-brand-50"}`}
-                          >
-                            ₦{value.toLocaleString()}
-                          </button>
-                        ))}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setStage("provider");
+                            setBillerId("");
+                          }}
+                        >
+                          Change
+                        </Button>
                       </div>
-                    )}
-                  </div>
-                  <VasHelpCard type={type} />
+                    </>
+                  )}
+                  {type !== "data" && (
+                    <FormField label="Amount">
+                      <div className="relative">
+                        <span className="pointer-events-none absolute left-3 top-2.5 text-sm font-semibold text-muted">
+                          ₦
+                        </span>
+                        <Input
+                          className="pl-8 text-base font-semibold"
+                          type="number"
+                          min="1"
+                          step="1"
+                          placeholder="0.00"
+                          value={amount}
+                          onChange={(event) => setAmount(event.target.value)}
+                        />
+                      </div>
+                    </FormField>
+                  )}
+                  {type === "airtime" && (
+                    <div className="flex flex-wrap gap-2">
+                      {AIRTIME_AMOUNTS.map((value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setAmount(String(value))}
+                          className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${Number(amount) === value ? "border-brand bg-brand-50 text-brand" : "border-border hover:border-brand-200 hover:bg-brand-50"}`}
+                        >
+                          ₦{value.toLocaleString()}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )
+                <VasHelpCard type={type} />
+              </div>
             )}
             {stage === "review" && (
               <div className="mx-auto max-w-lg">
