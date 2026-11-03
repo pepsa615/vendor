@@ -56,7 +56,8 @@ export interface DispatcherRevision {
   guarantorName: string;
   guarantorPhone: string;
   guarantorEmail?: string;
-  guarantorAddress?: string;
+  guarantorNinMasked: string | null;
+  guarantorAddress: string;
   revenueSharePct: string;
   decisionReason?: string;
   correctionFields: string[];
@@ -74,6 +75,16 @@ export interface DispatcherDetail {
   availability: boolean;
   approvedRevision: DispatcherRevision | null;
   latestRevision: DispatcherRevision;
+  selfieUrl?: string | null;
+  riderOnline?: boolean | null;
+  riderLocationObservedAt?: string | null;
+}
+
+export interface DispatcherLocation {
+  latitude: number;
+  longitude: number;
+  observedAt: string | null;
+  online: boolean;
 }
 
 export interface Customer {

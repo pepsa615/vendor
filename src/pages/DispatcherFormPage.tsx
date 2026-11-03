@@ -100,7 +100,8 @@ export default function DispatcherFormPage() {
                   guarantorName: data.get("guarantorName"),
                   guarantorPhone: data.get("guarantorPhone"),
                   guarantorEmail: optional("guarantorEmail"),
-                  guarantorAddress: optional("guarantorAddress"),
+                  guarantorNin: data.get("guarantorNin"),
+                  guarantorAddress: data.get("guarantorAddress"),
                   revenueSharePct: Number(data.get("revenueSharePct")),
                 }),
               },
@@ -219,16 +220,21 @@ export default function DispatcherFormPage() {
             <Field label="Name" name="guarantorName" />
             <Field label="Phone" name="guarantorPhone" type="tel" />
             <Field
+              label="National Identification Number (NIN)"
+              name="guarantorNin"
+              inputMode="numeric"
+              pattern="[0-9]{11}"
+              minLength={11}
+              maxLength={11}
+              placeholder="11-digit NIN"
+            />
+            <Field
               label="Email (optional)"
               name="guarantorEmail"
               type="email"
               required={false}
             />
-            <Field
-              label="Address (optional)"
-              name="guarantorAddress"
-              required={false}
-            />
+            <Field label="Address" name="guarantorAddress" />
           </div>
         </Card>
         <Card>
