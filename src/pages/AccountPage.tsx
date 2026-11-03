@@ -7,6 +7,7 @@ import {
   Check,
   CheckCircle2,
   ChevronRight,
+  Copy,
   Gauge,
   Lightbulb,
   LoaderCircle,
@@ -361,6 +362,7 @@ function WalletView() {
     "fund" | "transfer" | "vas" | "pin" | null
   >(null);
   const [vasType, setVasType] = useState<VasType>("airtime");
+  const [fundDetailsCopied, setFundDetailsCopied] = useState(false);
   if (summary.isLoading) return <Skeleton className="mt-6 h-48" />;
   if (!summary.data)
     return (
@@ -369,6 +371,16 @@ function WalletView() {
       </Alert>
     );
   const w = summary.data.wallet;
+  const fundDetailsText = [
+    `Account name: ${w.account.account_name}`,
+    `Account number: ${w.account.account_number}`,
+    `Bank: ${w.account.bank_name}`,
+  ].join("\n");
+  const copyFundDetails = async () => {
+    await navigator.clipboard.writeText(fundDetailsText);
+    setFundDetailsCopied(true);
+    window.setTimeout(() => setFundDetailsCopied(false), 2_000);
+  };
   return (
     <div className="mt-6 space-y-6">
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
@@ -506,13 +518,49 @@ function WalletView() {
       </Card>
       <Modal
         isOpen={modal === "fund"}
-        onOpenChange={(v) => !v && setModal(null)}
+        onOpenChange={(v) => {
+          if (!v) {
+            setModal(null);
+            setFundDetailsCopied(false);
+          }
+        }}
         title="Add funds"
       >
         <p className="text-sm text-muted">
-          Make a bank transfer to <strong>{w.account.account_number}</strong>,{" "}
-          {w.account.bank_name}. Verified deposits appear automatically.
+          Transfer to this account. Verified deposits appear automatically.
         </p>
+        <dl className="mt-4 space-y-3 rounded-xl border border-border bg-panel p-4 text-sm">
+          <div>
+            <dt className="text-muted">Account name</dt>
+            <dd className="mt-0.5 font-semibold text-foreground">
+              {w.account.account_name}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted">Account number</dt>
+            <dd className="mt-0.5 font-mono text-base font-semibold tracking-wide text-foreground">
+              {w.account.account_number}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted">Bank</dt>
+            <dd className="mt-0.5 font-semibold text-foreground">
+              {w.account.bank_name}
+            </dd>
+          </div>
+        </dl>
+        <Button
+          className="mt-4 w-full"
+          variant="secondary"
+          onClick={() => void copyFundDetails()}
+        >
+          {fundDetailsCopied ? (
+            <Check className="size-4" />
+          ) : (
+            <Copy className="size-4" />
+          )}
+          {fundDetailsCopied ? "Copied" : "Copy details"}
+        </Button>
       </Modal>
       <TransferModal open={modal === "transfer"} close={() => setModal(null)} />
       <VasModalV2
