@@ -13,6 +13,9 @@ import { ApprovedRoute } from "./ApprovedRoute.tsx";
 
 const Login = lazy(() => import("../pages/LoginPage.tsx"));
 const Registration = lazy(() => import("../pages/RegistrationPage.tsx"));
+const Indemnity = lazy(() => import("../pages/IndemnityPage.tsx"));
+const Privacy = lazy(() => import("../pages/PrivacyPage.tsx"));
+const Terms = lazy(() => import("../pages/TermsPage.tsx"));
 const Verification = lazy(() => import("../pages/VerificationPage.tsx"));
 const Onboarding = lazy(() => import("../pages/OnboardingPage.tsx"));
 const ThankYou = lazy(() => import("../pages/ThankYouPage.tsx"));
@@ -50,6 +53,10 @@ export const router = createBrowserRouter([
     children: [
       { path: "/login", element: suspended(<Login />) },
       { path: "/register", element: suspended(<Registration />) },
+      { path: "/identity-terms", element: suspended(<Indemnity />) },
+      { path: "/indemnity", element: suspended(<Indemnity />) },
+      { path: "/privacy", element: suspended(<Privacy />) },
+      { path: "/terms", element: suspended(<Terms />) },
       { path: "/verify-email", element: suspended(<Verification />) },
       { path: "/invitation", element: suspended(<Invitation />) },
       { path: "/order/:slug", element: suspended(<PublicOrder />) },

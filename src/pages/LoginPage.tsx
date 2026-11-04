@@ -80,6 +80,21 @@ export default function LoginPage() {
           Create an account
         </Link>
       </p>
+      <p className="mt-4 text-center text-xs text-muted">
+        By signing in you acknowledge Pepsa&apos;s{" "}
+        <Link className="font-semibold text-sky-500" to="/terms">
+          Terms &amp; Conditions
+        </Link>
+        ,{" "}
+        <Link className="font-semibold text-sky-500" to="/privacy">
+          Privacy Policy
+        </Link>{" "}
+        and{" "}
+        <Link className="font-semibold text-sky-500" to="/identity-terms">
+          Indemnity and Electronic Signature Consent Agreement
+        </Link>
+        .
+      </p>
     </AuthShell>
   );
 }

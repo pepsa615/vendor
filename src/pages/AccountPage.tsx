@@ -743,7 +743,7 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
             </span>
             <ChevronRight className="size-4 text-muted" />
           </button>
-        </div>
+          </div>
       )}
 
       {step === "recipient" && (
@@ -763,7 +763,7 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
                   <span className="flex min-w-0 items-center gap-3">
                     <BankLogo bank={selectedBank} size={36} />
                     <span className="truncate text-sm font-semibold">
-                      {selectedBank.name}
+                    {selectedBank.name}
                     </span>
                   </span>
                   <Button
