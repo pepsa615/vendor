@@ -24,6 +24,10 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { apiDownload, apiRequest } from "../api/client.ts";
 import {
+  BankLogo,
+  PepsaRailLogo,
+} from "../components/account/BankLogo.tsx";
+import {
   Alert,
   Badge,
   Button,
@@ -44,6 +48,7 @@ import {
   Tr,
 } from "../components/ui/index.ts";
 import { useSession } from "../contexts/SessionContext.tsx";
+import { isPepsaRailBank } from "../features/account/bankLogo.ts";
 import type {
   AccountSummary,
   Bank,
@@ -572,26 +577,68 @@ function WalletView() {
     </div>
   );
 }
+type TransferStep = "rail" | "recipient" | "amount" | "review" | "pin";
+
+type EnquiryResult = {
+  account_number: string;
+  bank_code: string;
+  bank_name: string;
+  account_name: string;
+};
+
 function TransferModal({ open, close }: { open: boolean; close: () => void }) {
-  const [token, setToken] = useState("");
+  const [step, setStep] = useState<TransferStep>("rail");
   const [scope, setScope] = useState<"internal" | "external">("internal");
   const [account, setAccount] = useState("");
   const [bank, setBank] = useState("");
   const [bankSearch, setBankSearch] = useState("");
   const [amount, setAmount] = useState("");
+  const [token, setToken] = useState("");
+  const [enquiry, setEnquiry] = useState<EnquiryResult | null>(null);
+  const [enquiryError, setEnquiryError] = useState("");
+
   const banks = useQuery({
     queryKey: ["banks"],
     queryFn: () => apiRequest<Bank[]>("/account/banks"),
-    enabled: open && scope === "external",
+    enabled: open,
   });
-  const filteredBanks = (banks.data ?? []).filter((item) =>
-    `${item.name} ${item.code}`
-      .toLowerCase()
-      .includes(bankSearch.trim().toLowerCase()),
-  );
+
+  const pepsaBank =
+    (banks.data ?? []).find((item) => isPepsaRailBank(item)) ?? null;
   const selectedBank = (banks.data ?? []).find((item) => item.code === bank);
-  const transfer = useMutation({
+  const filteredBanks = (banks.data ?? []).filter((item) =>
+    item.name.toLowerCase().includes(bankSearch.trim().toLowerCase()),
+  );
+
+  const enquiryBankCode =
+    scope === "internal" ? (pepsaBank?.code ?? "") : bank;
+
+  const resolveName = useMutation({
     mutationFn: () =>
+      apiRequest<EnquiryResult>("/account/account-enquiry", {
+        method: "POST",
+        body: JSON.stringify({
+          accountNumber: account,
+          bankCode: enquiryBankCode,
+        }),
+      }),
+    onSuccess: (data) => {
+      setEnquiry(data);
+      setEnquiryError("");
+      setStep("amount");
+    },
+    onError: () => {
+      setEnquiry(null);
+      setEnquiryError(
+        scope === "internal"
+          ? "Could not find that Pepsa account. Check the number and try again."
+          : "Could not verify that bank account. Check the details and try again.",
+      );
+    },
+  });
+
+  const transfer = useMutation({
+    mutationFn: (challengeToken: string) =>
       apiRequest("/account/transfers", {
         method: "POST",
         headers: { "idempotency-key": idempotency() },
@@ -605,47 +652,128 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
                   destinationAccountNumber: account,
                   destinationBankCode: bank,
                 },
-          challengeToken: token,
+          challengeToken,
         }),
       }),
     onSuccess: close,
+    onError: () => setToken(""),
   });
+
+  useEffect(() => {
+    if (!open) {
+      setStep("rail");
+      setScope("internal");
+      setAccount("");
+      setBank("");
+      setBankSearch("");
+      setAmount("");
+      setToken("");
+      setEnquiry(null);
+      setEnquiryError("");
+    }
+  }, [open]);
+
+  const amountValue = Number(amount);
+  const amountOk = Number.isFinite(amountValue) && amountValue > 0;
+  const accountOk = /^\d{10,20}$/.test(account.trim());
+  const canResolve =
+    accountOk &&
+    (scope === "internal" ? Boolean(pepsaBank?.code) : Boolean(bank));
+
+  const title =
+    step === "rail"
+      ? "Send money"
+      : step === "recipient"
+        ? scope === "internal"
+          ? "To Pepsa"
+          : "To other bank"
+        : step === "amount"
+          ? "Enter amount"
+          : step === "review"
+            ? "Confirm transfer"
+            : "Authorize transfer";
+
   return (
-    <Modal
-      isOpen={open}
-      onOpenChange={(v) => !v && close()}
-      title="Transfer out"
-    >
-      {!token ? (
-        <PinStep purpose="TRANSFER" onToken={setToken} />
-      ) : (
+    <Modal isOpen={open} onOpenChange={(v) => !v && close()} title={title}>
+      {step === "rail" && (
         <div className="space-y-3">
-          <div className="flex gap-2">
-            <Button
-              variant={scope === "internal" ? "primary" : "secondary"}
-              onClick={() => setScope("internal")}
-            >
-              Pepsa account
-            </Button>
-            <Button
-              variant={scope === "external" ? "primary" : "secondary"}
-              onClick={() => setScope("external")}
-            >
-              Bank account
-            </Button>
-          </div>
+          <p className="text-sm text-muted">
+            Choose how you want to send money from your Pepsa wallet.
+          </p>
+          <button
+            type="button"
+            className="flex w-full items-center gap-3 rounded-2xl border border-border bg-panel p-4 text-left transition hover:border-brand-300 hover:shadow-soft"
+            onClick={() => {
+              setScope("internal");
+              setBank("");
+              setEnquiry(null);
+              setStep("recipient");
+            }}
+          >
+            <PepsaRailLogo size={44} />
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold text-foreground">
+                Pepsa to Pepsa
+              </span>
+              <span className="mt-0.5 block text-sm text-muted">
+                Instant transfer to another Pepsa wallet
+              </span>
+            </span>
+            <ChevronRight className="size-4 text-muted" />
+          </button>
+          <button
+            type="button"
+            className="flex w-full items-center gap-3 rounded-2xl border border-border bg-panel p-4 text-left transition hover:border-brand-300 hover:shadow-soft"
+            onClick={() => {
+              setScope("external");
+              setEnquiry(null);
+              setStep("recipient");
+            }}
+          >
+            <span className="grid size-11 place-items-center rounded-full bg-neutral-100 text-sm font-bold text-muted">
+              ₦
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold text-foreground">
+                To other banks
+              </span>
+              <span className="mt-0.5 block text-sm text-muted">
+                Send to any Nigerian bank account
+              </span>
+            </span>
+            <ChevronRight className="size-4 text-muted" />
+          </button>
+        </div>
+      )}
+
+      {step === "recipient" && (
+        <div className="space-y-4">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-sm font-medium text-brand"
+            onClick={() => setStep("rail")}
+          >
+            <ArrowLeft className="size-4" /> Back
+          </button>
+
           {scope === "external" && (
             <FormField label="Bank">
               {selectedBank ? (
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2">
-                  <span className="text-sm font-medium">
-                    {selectedBank.name}
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2.5">
+                  <span className="flex min-w-0 items-center gap-3">
+                    <BankLogo bank={selectedBank} size={36} />
+                    <span className="truncate text-sm font-semibold">
+                      {selectedBank.name}
+                    </span>
                   </span>
                   <Button
                     type="button"
                     size="sm"
                     variant="ghost"
-                    onClick={() => setBank("")}
+                    onClick={() => {
+                      setBank("");
+                      setEnquiry(null);
+                    }}
                   >
                     Change
                   </Button>
@@ -654,11 +782,11 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
                 <div className="space-y-2">
                   <SearchInput
                     aria-label="Search banks"
-                    placeholder="Search banks"
+                    placeholder="Search bank name"
                     value={bankSearch}
                     onChange={setBankSearch}
                   />
-                  <div className="max-h-48 overflow-y-auto rounded-xl border border-border">
+                  <div className="max-h-56 overflow-y-auto rounded-xl border border-border">
                     {banks.isLoading ? (
                       <p className="p-3 text-sm text-muted">Loading banks…</p>
                     ) : filteredBanks.length === 0 ? (
@@ -668,15 +796,16 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
                         <button
                           key={item.code}
                           type="button"
-                          className="flex w-full items-center justify-between gap-2 border-b border-border px-3 py-2 text-left text-sm last:border-b-0 hover:bg-neutral-50"
+                          className="flex w-full items-center gap-3 border-b border-border px-3 py-2.5 text-left text-sm last:border-b-0 hover:bg-neutral-50"
                           onClick={() => {
                             setBank(item.code);
                             setBankSearch("");
+                            setEnquiry(null);
                           }}
                         >
-                          <span className="font-medium">{item.name}</span>
-                          <span className="text-xs text-muted">
-                            {item.code}
+                          <BankLogo bank={item} size={36} />
+                          <span className="font-medium text-foreground">
+                            {item.name}
                           </span>
                         </button>
                       ))
@@ -686,26 +815,176 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
               )}
             </FormField>
           )}
-          <FormField label="Account number">
+
+          {scope === "internal" && (
+            <div className="flex items-center gap-3 rounded-xl border border-border bg-panel px-3 py-2.5">
+              <PepsaRailLogo size={36} />
+              <div>
+                <p className="text-sm font-semibold">Pepsa wallet</p>
+                <p className="text-xs text-muted">Instant · no bank fees</p>
+              </div>
+            </div>
+          )}
+
+          <FormField label="Account number" error={enquiryError || undefined}>
             <Input
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="10-digit account number"
               value={account}
-              onChange={(e) => setAccount(e.target.value)}
+              onChange={(e) => {
+                setAccount(e.target.value.replace(/\D/g, "").slice(0, 20));
+                setEnquiry(null);
+                setEnquiryError("");
+              }}
             />
           </FormField>
-          <FormField label="Amount">
+
+          {enquiry && (
+            <div className="rounded-xl border border-success-200 bg-success-50 px-3 py-2.5 text-sm">
+              <p className="text-xs text-muted">Account name</p>
+              <p className="font-semibold text-foreground">
+                {enquiry.account_name}
+              </p>
+            </div>
+          )}
+
+          <Button
+            className="w-full"
+            loading={resolveName.isPending}
+            disabled={!canResolve}
+            onClick={() => resolveName.mutate()}
+          >
+            Continue
+          </Button>
+        </div>
+      )}
+
+      {step === "amount" && (
+        <div className="space-y-4">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-sm font-medium text-brand"
+            onClick={() => setStep("recipient")}
+          >
+            <ArrowLeft className="size-4" /> Back
+          </button>
+          <div className="flex items-center gap-3 rounded-xl border border-border px-3 py-2.5">
+            {scope === "internal" ? (
+              <PepsaRailLogo size={36} />
+            ) : (
+              <BankLogo bank={selectedBank} size={36} />
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">
+                {enquiry?.account_name ?? "Recipient"}
+              </p>
+              <p className="truncate text-xs text-muted">
+                {account}
+                {scope === "external" && selectedBank
+                  ? ` · ${selectedBank.name}`
+                  : " · Pepsa"}
+              </p>
+            </div>
+          </div>
+          <FormField label="Amount (₦)">
             <Input
               type="number"
+              min="1"
+              step="0.01"
+              inputMode="decimal"
+              className="text-2xl font-bold tracking-tight"
+              placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
           </FormField>
           <Button
             className="w-full"
-            loading={transfer.isPending}
-            onClick={() => transfer.mutate()}
+            disabled={!amountOk}
+            onClick={() => setStep("review")}
           >
-            Review and transfer
+            Continue
           </Button>
+        </div>
+      )}
+
+      {step === "review" && (
+        <div className="space-y-4">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-sm font-medium text-brand"
+            onClick={() => setStep("amount")}
+          >
+            <ArrowLeft className="size-4" /> Back
+          </button>
+          <div className="rounded-2xl border border-border bg-panel p-4 text-center">
+            <p className="text-sm text-muted">You are sending</p>
+            <p className="mt-1 text-3xl font-bold text-foreground">
+              {ngn(Math.round(amountValue * 100))}
+            </p>
+          </div>
+          <dl className="space-y-3 rounded-xl border border-border p-4 text-sm">
+            <div className="flex items-start justify-between gap-3">
+              <dt className="text-muted">To</dt>
+              <dd className="text-right font-semibold">
+                {enquiry?.account_name ?? "—"}
+              </dd>
+            </div>
+            <div className="flex items-start justify-between gap-3">
+              <dt className="text-muted">Account</dt>
+              <dd className="text-right font-mono font-semibold">{account}</dd>
+            </div>
+            <div className="flex items-start justify-between gap-3">
+              <dt className="text-muted">Bank</dt>
+              <dd className="flex items-center justify-end gap-2 font-semibold">
+                {scope === "internal" ? (
+                  <>
+                    <PepsaRailLogo size={22} /> Pepsa
+                  </>
+                ) : (
+                  <>
+                    <BankLogo bank={selectedBank} size={22} />
+                    {selectedBank?.name ?? enquiry?.bank_name ?? "—"}
+                  </>
+                )}
+              </dd>
+            </div>
+          </dl>
+          <Button className="w-full" onClick={() => setStep("pin")}>
+            Confirm &amp; enter PIN
+          </Button>
+        </div>
+      )}
+
+      {step === "pin" && (
+        <div className="space-y-3">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-sm font-medium text-brand"
+            onClick={() => setStep("review")}
+          >
+            <ArrowLeft className="size-4" /> Back
+          </button>
+          {!token ? (
+            <PinStep
+              purpose="TRANSFER"
+              onToken={(value) => {
+                setToken(value);
+                transfer.mutate(value);
+              }}
+            />
+          ) : (
+            <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted">
+              <LoaderCircle className="size-4 animate-spin" />
+              Sending transfer…
+            </div>
+          )}
+          {transfer.isError && (
+            <Alert tone="danger" title="Transfer failed">
+              Check the details and try again.
+            </Alert>
+          )}
         </div>
       )}
     </Modal>
