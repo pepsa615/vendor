@@ -828,6 +828,25 @@
         ]
       }
     },
+    "/api/internal/v1/riders/presence": {
+      "post": {
+        "operationId": "InternalRiderPresenceController_presence",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Rider presence sync"
+        ]
+      }
+    },
     "/api/v1/public/places/autocomplete": {
       "get": {
         "operationId": "PublicPlacesController_autocomplete_v1",
@@ -2113,6 +2132,20 @@
         },
         "tags": [
           "Dispatch provider webhook"
+        ]
+      }
+    },
+    "/api/v1/webhooks/pepsa-order": {
+      "post": {
+        "operationId": "PepsaOrderWebhookController_event_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Pepsa Order dispatch webhook"
         ]
       }
     },
