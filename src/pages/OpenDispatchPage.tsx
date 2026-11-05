@@ -547,11 +547,11 @@ function AssignmentPanel({
     mutationFn: () => {
       const body: DispatchPreviewRequest = {
         mode,
+        mobilityMethod,
         ...(sourceType === "order"
           ? { orderId: sourceId }
           : { batchId: sourceId }),
         ...(mode === "OWN_FLEET" ? { dispatcherId } : {}),
-        ...(mode === "GENERAL_POOL" ? { mobilityMethod } : {}),
       };
       return apiRequest<DispatchPreview>("/dispatches/preview", {
         method: "POST",
