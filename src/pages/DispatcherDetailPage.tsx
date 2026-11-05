@@ -196,6 +196,23 @@ export default function DispatcherDetailPage() {
                 {dispatcher.availability ? "Online" : "Offline"}
               </Switch>
             </div>
+            {dispatcher.riderOnline != null ? (
+              <p className="mt-3 text-sm text-muted">
+                Rider app:{" "}
+                <span
+                  className={
+                    dispatcher.riderOnline
+                      ? "font-semibold text-emerald-700"
+                      : "font-semibold text-rose-700"
+                  }
+                >
+                  {dispatcher.riderOnline ? "Online" : "Offline"}
+                </span>
+                {dispatcher.availability !== dispatcher.riderOnline
+                  ? " (syncing with rider presence)"
+                  : null}
+              </p>
+            ) : null}
             <div className="mt-4 border-t border-border pt-4">
               <Button
                 variant="outline"
