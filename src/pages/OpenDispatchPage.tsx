@@ -46,6 +46,10 @@ import type {
   OrderListResponse,
   VendorOrder,
 } from "../features/orders/types.ts";
+import {
+  displayOrderStatus,
+  isOrderOnDispatch,
+} from "../features/orders/types.ts";
 import type { DispatcherListResponse } from "../features/people/types.ts";
 import type { Page, BatchSummary } from "../features/manifests/types.ts";
 import { formatLocationSummary } from "../features/orders/orderIntake.ts";
@@ -509,10 +513,11 @@ function AssignmentPanel({
     () =>
       (orders.data?.items ?? []).filter(
         (order) =>
-          (order.source === "VENDOR_DIRECT" && order.status === "READY") ||
-          (order.source === "CUSTOMER_LINK" &&
-            order.status === "ACCEPTED" &&
-            order.paymentStatus === "PAID"),
+          !isOrderOnDispatch(order) &&
+          ((order.source === "VENDOR_DIRECT" && order.status === "READY") ||
+            (order.source === "CUSTOMER_LINK" &&
+              order.status === "ACCEPTED" &&
+              order.paymentStatus === "PAID")),
       ),
     [orders.data],
   );
@@ -1175,10 +1180,11 @@ function CustomerOrders() {
     onError: (reason) => setActionError(errorMessage(reason)),
   });
   const isDispatchReady = (order: VendorOrder) =>
-    (order.source === "VENDOR_DIRECT" && order.status === "READY") ||
-    (order.source === "CUSTOMER_LINK" &&
-      order.status === "ACCEPTED" &&
-      order.paymentStatus === "PAID");
+    !isOrderOnDispatch(order) &&
+    ((order.source === "VENDOR_DIRECT" && order.status === "READY") ||
+      (order.source === "CUSTOMER_LINK" &&
+        order.status === "ACCEPTED" &&
+        order.paymentStatus === "PAID"));
   const eligibleIds = useMemo(
     () =>
       new Set(
@@ -1282,11 +1288,24 @@ function CustomerOrders() {
                   <Badge>{order.paymentStatus}</Badge>
                 </Td>
                 <Td>
-                  <Badge>{order.status.replaceAll("_", " ")}</Badge>
+                  <Badge
+                    tone={
+                      ["DELIVERED", "COMPLETED"].includes(
+                        displayOrderStatus(order),
+                      )
+                        ? "success"
+                        : displayOrderStatus(order) === "CANCELLED"
+                          ? "danger"
+                          : "info"
+                    }
+                  >
+                    {displayOrderStatus(order).replaceAll("_", " ")}
+                  </Badge>
                 </Td>
                 <Td>
                   {order.status === "PENDING_ACCEPTANCE" &&
-                  order.paymentStatus === "PAID" ? (
+                  order.paymentStatus === "PAID" &&
+                  !isOrderOnDispatch(order) ? (
                     <Dropdown
                       size="sm"
                       align="end"

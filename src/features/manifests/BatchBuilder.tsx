@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "../../api/client.ts";
 import type { OrderListResponse, VendorOrder } from "../orders/types.ts";
+import { isOrderOnDispatch } from "../orders/types.ts";
 import type { Validation } from "./types.ts";
 import {
   Alert,
@@ -15,7 +16,7 @@ import {
 
 const ready = (order: VendorOrder) =>
   !order.batchItem &&
-  !(order.manifestItems?.length || order.dispatchItems?.length) &&
+  !isOrderOnDispatch(order) &&
   ((order.source === "VENDOR_DIRECT" && order.status === "READY") ||
     (order.source === "CUSTOMER_LINK" &&
       order.status === "ACCEPTED" &&
