@@ -151,7 +151,7 @@ function BatchingView({
 
 function ValidationSummary({ value }: { value: Validation }) {
   return (
-    <div className="mt-4 grid gap-3 sm:grid-cols-4">
+    <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
       {(
         [
           ["Scanned", value.total],
@@ -166,7 +166,7 @@ function ValidationSummary({ value }: { value: Validation }) {
         </Card>
       ))}
       {(value.invalid.length > 0 || value.duplicates.length > 0) && (
-        <Alert tone="warning" className="sm:col-span-4">
+        <Alert tone="warning" className="col-span-2 lg:col-span-4">
           Invalid:{" "}
           {value.invalid
             .map((item) => `${item.trackingId} (${item.reason})`)
@@ -549,7 +549,7 @@ function TravelManifestView() {
                 them before previewing the manifest.
               </p>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-4">
+            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
               {[
                 ["Total added", parsedTrackingIds().length],
                 ["Valid", parcelValidation?.valid.length ?? "—"],
@@ -561,13 +561,15 @@ function TravelManifestView() {
             </div>
             <div className="mt-5">
               <FormField label="Parcel ID or barcode">
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <Input
+                    className="min-w-0 flex-1"
                     value={parcelEntry}
                     onChange={(event) => setParcelEntry(event.target.value)}
                     placeholder="Scan or type parcel ID"
                   />
                   <Button
+                    className="w-full shrink-0 sm:w-auto"
                     type="button"
                     onClick={() => {
                       const value = parcelEntry.trim();
@@ -964,7 +966,7 @@ function ManifestDetail({
                 </ol>
               </div>
             ) : null}
-            <div className="overflow-x-auto rounded-xl border border-border">
+            <div className="min-w-0">
               <Table>
                 <THead>
                   <Tr>

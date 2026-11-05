@@ -34,9 +34,12 @@ export function FilterGroup({
       value={value}
       onChange={onChange}
       orientation="horizontal"
-      className={cx("flex flex-wrap items-center gap-x-5 gap-y-2", className)}
+      className={cx(
+        "flex w-full max-w-full flex-wrap items-center gap-x-4 gap-y-2 sm:gap-x-5",
+        className,
+      )}
     >
-      <Label className="text-sm font-semibold">{label}</Label>
+      <Label className="w-full text-sm font-semibold sm:w-auto">{label}</Label>
       {options.map((option) => (
         <Radio
           key={option.value || "all"}

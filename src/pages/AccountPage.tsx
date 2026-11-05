@@ -176,24 +176,27 @@ function SettlementView() {
           inflow.
         </Alert>
       )}
-      <div className="flex flex-wrap items-end justify-end gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end sm:justify-end">
         <DatePicker
+          className="w-full sm:w-auto"
           label="From"
           value={parseDate(from)}
           onChange={(value) => value && setFrom(value.toString())}
         />
         <DatePicker
+          className="w-full sm:w-auto"
           label="To"
           value={parseDate(to)}
           onChange={(value) => value && setTo(value.toString())}
         />
         <Button
+          className="w-full sm:w-auto"
           variant="outline"
           onClick={() => void downloadSettlement(from, to)}
         >
           Export CSV
         </Button>
-        <Button onClick={() => setCash(true)}>
+        <Button className="w-full sm:w-auto" onClick={() => setCash(true)}>
           <ArrowDownToLine className="size-4" /> Cash Out
         </Button>
       </div>

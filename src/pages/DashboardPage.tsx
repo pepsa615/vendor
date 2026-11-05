@@ -140,7 +140,7 @@ export default function DashboardPage() {
   });
   if (query.isLoading)
     return (
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {Array.from({ length: 8 }, (_, i) => (
           <Skeleton key={i} className="h-28" />
         ))}
@@ -159,11 +159,11 @@ export default function DashboardPage() {
       {profile.data?.publicOrder && (
         <PublicOrderLinkCard publicOrder={profile.data.publicOrder} compact />
       )}
-      <Card className="flex flex-wrap items-end gap-3 p-4">
+      <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-end">
         <Select
           label="Analytics period"
           size="sm"
-          className="min-w-44"
+          className="w-full min-w-0 sm:w-auto sm:min-w-44"
           selectedKey={period}
           onSelectionChange={(key) => setPeriod(String(key) as Period)}
           options={[
@@ -178,6 +178,7 @@ export default function DashboardPage() {
             <DatePicker
               label="From"
               size="sm"
+              className="w-full sm:w-auto"
               value={customFrom}
               onChange={(value) =>
                 value && setCustomFrom(value as CalendarDate)
@@ -186,18 +187,21 @@ export default function DashboardPage() {
             <DatePicker
               label="To"
               size="sm"
+              className="w-full sm:w-auto"
               value={customTo}
               minValue={customFrom}
               onChange={(value) => value && setCustomTo(value as CalendarDate)}
             />
           </>
         )}
-        <p className="ml-auto pb-2 text-xs text-muted">Showing {periodLabel}</p>
+        <p className="pb-2 text-xs text-muted sm:ml-auto">
+          Showing {periodLabel}
+        </p>
       </Card>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.85fr)_minmax(18rem,1fr)]">
-        <Card className="p-5">
+        <Card className="p-4 sm:p-5">
           <h2 className="mb-3 text-sm font-semibold">Current Activities</h2>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
             <StatCard
               label="Active Dispatch"
               value={data.currentActivities.activeDispatch}
@@ -220,11 +224,13 @@ export default function DashboardPage() {
           </div>
           <div className="my-5 flex items-center gap-2 text-[10px]">
             <span className="h-px flex-1 bg-border" />
-            BUSINESS &amp; OPERATION OVERVIEW
+            <span className="shrink-0 text-center">
+              BUSINESS &amp; OPERATION OVERVIEW
+            </span>
             <span className="h-px flex-1 bg-border" />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex gap-7">
+            <div className="flex flex-wrap gap-4 sm:gap-7">
               {(["dispatch", "order", "revenue"] as Mode[]).map((item) => (
                 <Button
                   variant="ghost"
@@ -347,16 +353,19 @@ export default function DashboardPage() {
           )}
         </Card>
         <Card className="p-0">
-          <div className="flex items-center justify-between border-b px-5 py-4">
-            <div>
+          <div className="flex items-start justify-between gap-3 border-b px-4 py-4 sm:items-center sm:px-5">
+            <div className="min-w-0">
               <h2 className="font-semibold">Overall Information</h2>
               <p className="mt-0.5 text-xs text-muted">
                 Account totals and selected-period activity
               </p>
             </div>
-            <CalendarDays className="size-4 text-muted" aria-hidden />
+            <CalendarDays
+              className="size-4 shrink-0 text-muted"
+              aria-hidden
+            />
           </div>
-          <div className="grid gap-3 p-5 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-3 sm:p-5">
             <Overall
               icon={<PackageCheck />}
               label="Delivery"

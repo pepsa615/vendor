@@ -52,15 +52,15 @@ export default function DispatchersPage() {
   const stats = query.data?.stats;
   return (
     <section>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h2 className="text-xl font-bold">Dispatchers</h2>
           <p className="mt-1 text-sm text-muted">
             Onboard your fleet and monitor Pepsa compliance approval.
           </p>
         </div>
         <Link
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand bg-brand px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-brand bg-brand px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 sm:w-auto"
           to="/people/dispatchers/new"
         >
           <Plus className="size-4" /> Add dispatcher
@@ -118,7 +118,7 @@ export default function DispatchersPage() {
       {query.isLoading ? (
         <Skeleton className="mt-5 h-72" />
       ) : (
-        <div className="mt-5 overflow-x-auto">
+        <div className="mt-5 min-w-0">
           <Table>
             <THead>
               <Tr>

@@ -159,12 +159,12 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
-          <div className="mt-6 flex items-center justify-between gap-4">
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <p className="text-sm text-muted">
               Preview: 8 km at ₦{Number(setting?.pricePerKmMinor ?? 0) / 100}/km
               before discount.
             </p>
-            <Button>Save pricing</Button>
+            <Button className="w-full sm:w-auto">Save pricing</Button>
           </div>
         </form>
       </Card>

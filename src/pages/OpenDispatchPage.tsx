@@ -181,14 +181,14 @@ function RunwayManifest({ initialOrderId = "" }: { initialOrderId?: string }) {
   });
   return (
     <div className="mt-6 space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h2 className="text-base font-semibold">Runway manifests</h2>
           <p className="mt-1 text-sm text-muted">
             Create and monitor delivery assignments for your approved fleet.
           </p>
         </div>
-        <Button onClick={() => setCreating(true)}>
+        <Button className="w-full sm:w-auto" onClick={() => setCreating(true)}>
           <Plus className="size-4" /> Create manifest
         </Button>
       </div>
@@ -261,7 +261,7 @@ function RunwayManifest({ initialOrderId = "" }: { initialOrderId?: string }) {
         />
       </div>
       <Card className="overflow-hidden p-0">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-4 sm:px-5">
           <h3 className="text-sm font-semibold">Manifest list</h3>
           <span className="text-xs text-muted">
             {list.data?.total ?? 0} active assignments
@@ -283,7 +283,7 @@ function RunwayManifest({ initialOrderId = "" }: { initialOrderId?: string }) {
           />
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="min-w-0">
               <Table>
                 <THead>
                   <Tr>
@@ -733,7 +733,7 @@ function AssignmentPanel({
               </p>
             </div>
           </div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-4">
+          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
             <StatCard
               label="Online dispatchers"
               value={dispatchers.data?.stats.online ?? "—"}
@@ -777,7 +777,7 @@ function AssignmentPanel({
                 }
               />
             ) : (
-              <div className="overflow-x-auto">
+              <div className="min-w-0">
                 <Table>
                   <THead>
                     <Tr>
@@ -1214,19 +1214,20 @@ function CustomerOrders() {
           {actionError}
         </Alert>
       )}
-      <div className="mb-4 flex justify-end gap-2">
+      <div className="mb-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button
+          className="w-full sm:w-auto"
           variant="secondary"
           disabled={!selected.size}
           onClick={() => setBatching(true)}
         >
           <PackagePlus className="size-4" /> Create batch ({selected.size})
         </Button>
-        <Button onClick={() => setCreating(true)}>
+        <Button className="w-full sm:w-auto" onClick={() => setCreating(true)}>
           <Plus className="size-4" /> Create order
         </Button>
       </div>
-      <div className="overflow-x-auto">
+      <div className="min-w-0">
         <Table>
           <THead>
             <Tr>

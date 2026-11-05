@@ -239,8 +239,9 @@ function DispatchOperations({ history }: { history: boolean }) {
           </Button>
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-6 rounded-t-xl border border-b-0 border-border bg-panel px-5 py-4">
+      <div className="flex flex-col gap-3 rounded-t-xl border border-b-0 border-border bg-panel px-4 py-4 sm:px-5 md:flex-row md:flex-wrap md:items-center md:gap-6">
         <FilterGroup
+          className="min-w-0 flex-1"
           label="Show only:"
           value={status}
           onChange={(value) => {
@@ -275,7 +276,7 @@ function DispatchOperations({ history }: { history: boolean }) {
           }))}
         />
         <SearchInput
-          className="ml-auto w-64"
+          className="w-full md:ml-auto md:w-64"
           value={search}
           onChange={(value) => {
             setSearch(value);
@@ -287,7 +288,7 @@ function DispatchOperations({ history }: { history: boolean }) {
       {query.isLoading ? (
         <Skeleton className="mt-5 h-64" />
       ) : (
-        <div className="overflow-x-auto">
+        <div className="min-w-0">
           <Table>
             <THead>
               <Tr>
@@ -375,7 +376,7 @@ function DispatchOperations({ history }: { history: boolean }) {
             </TBody>
           </Table>
           {query.data && (
-            <div className="flex items-center justify-between border border-t-0 border-border px-4 py-3">
+            <div className="flex flex-col gap-3 border border-t-0 border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-xs text-muted">
                 {query.data.total.toLocaleString()} dispatches
               </span>
@@ -524,7 +525,7 @@ function DispatchReport({
             </Button>
           )}
         </div>
-        <div className="overflow-x-auto rounded-xl border border-border">
+        <div className="min-w-0">
           <Table>
             <THead>
               <Tr>
@@ -814,9 +815,11 @@ function AssignedManifests() {
         {selected && (
           <div className="space-y-5 text-sm">
             {error && <Alert tone="danger">{error}</Alert>}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <Badge>{selected.status.replaceAll("_", " ")}</Badge>
-              <span>{selected.waybillNumber}</span>
+              <span className="break-all text-xs sm:text-sm">
+                {selected.waybillNumber}
+              </span>
             </div>
             <p>
               <b>From:</b> {selected.originVendor.businessName}

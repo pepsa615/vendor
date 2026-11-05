@@ -119,7 +119,7 @@ export function BatchBuilder({
         onChange={setSearch}
         placeholder="Search reference, customer or parcel"
       />
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
         <Checkbox
           isSelected={
             visible.length > 0 &&

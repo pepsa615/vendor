@@ -29,7 +29,7 @@ export function Tabs({
       className={typeof className === "string" ? className : undefined}
       {...props}
     >
-      <TabList className="flex gap-1 overflow-x-auto border-b border-border">
+      <TabList className="-mx-1 flex gap-1 overflow-x-auto border-b border-border px-1">
         {items.map((item) => (
           <Tab
             key={item.key}
@@ -37,7 +37,7 @@ export function Tabs({
             isDisabled={item.disabled}
             className={({ isSelected, isFocusVisible }) =>
               cx(
-                "-mb-px cursor-pointer border-b-2 font-semibold text-muted outline-none transition hover:text-foreground",
+                "-mb-px shrink-0 cursor-pointer whitespace-nowrap border-b-2 font-semibold text-muted outline-none transition hover:text-foreground",
                 sizes[size],
                 isSelected
                   ? "border-brand-600 text-brand-700"

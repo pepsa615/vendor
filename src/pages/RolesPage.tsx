@@ -50,8 +50,8 @@ export default function RolesPage() {
   const [error, setError] = useState("");
   return (
     <div>
-      <h1 className="text-3xl font-bold">Staff Roles</h1>
-      <p className="mt-2 text-muted">
+      <h1 className="text-2xl font-bold sm:text-3xl">Staff Roles</h1>
+      <p className="mt-2 text-sm text-muted sm:text-base">
         Create least-privilege roles for your team.
       </p>
       {error && (

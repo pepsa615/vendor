@@ -177,14 +177,17 @@ export function VendorOrderForm({
 
   return (
     <form ref={formRef} onSubmit={submit}>
-      <ol className="mb-6 grid grid-cols-5 gap-2" aria-label="Order steps">
+      <ol
+        className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5"
+        aria-label="Order steps"
+      >
         {steps.map((label, index) => (
           <li key={label} className="min-w-0">
             <div
               className={`h-1.5 rounded-full ${index <= step ? "bg-brand" : "bg-neutral-200"}`}
             />
             <p
-              className={`mt-2 truncate text-xs ${index === step ? "font-semibold text-brand" : "text-muted"}`}
+              className={`mt-2 truncate text-[11px] sm:text-xs ${index === step ? "font-semibold text-brand" : "text-muted"}`}
             >
               {index + 1}. {label}
             </p>

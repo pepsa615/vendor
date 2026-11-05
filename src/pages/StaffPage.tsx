@@ -39,8 +39,8 @@ export default function StaffPage() {
   const [message, setMessage] = useState("");
   return (
     <div>
-      <h1 className="text-3xl font-bold">Staff</h1>
-      <p className="mt-2 text-muted">
+      <h1 className="text-2xl font-bold sm:text-3xl">Staff</h1>
+      <p className="mt-2 text-sm text-muted sm:text-base">
         Invite teammates and control their access.
       </p>
       {error && (
@@ -55,7 +55,7 @@ export default function StaffPage() {
       )}
       <Card className="mt-6">
         <form
-          className="flex flex-wrap items-end gap-4"
+          className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end"
           onSubmit={async (event) => {
             event.preventDefault();
             const form = event.currentTarget;
@@ -75,13 +75,13 @@ export default function StaffPage() {
             }
           }}
         >
-          <div className="min-w-64 flex-1">
+          <div className="w-full min-w-0 flex-1 sm:min-w-56">
             <FormField label="Staff email">
               <Input name="email" type="email" required />
             </FormField>
           </div>
           <Select
-            className="min-w-56"
+            className="w-full min-w-0 sm:w-auto sm:min-w-56"
             label="Role"
             selectedKey={roleId || null}
             onSelectionChange={(key) => setRoleId(String(key))}
@@ -89,7 +89,9 @@ export default function StaffPage() {
               .filter((role) => !role.isOwner)
               .map((role) => ({ key: role.id, label: role.name }))}
           />
-          <Button disabled={!roleId}>Send invitation</Button>
+          <Button className="w-full sm:w-auto" disabled={!roleId}>
+            Send invitation
+          </Button>
         </form>
       </Card>
       <div className="mt-6">

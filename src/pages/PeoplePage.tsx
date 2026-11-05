@@ -20,12 +20,12 @@ export default function PeoplePage() {
   return (
     <div>
       <header>
-        <h1 className="text-3xl font-bold">People</h1>
-        <p className="mt-2 text-muted">
+        <h1 className="text-2xl font-bold sm:text-3xl">People</h1>
+        <p className="mt-2 text-sm text-muted sm:text-base">
           Manage dispatchers, customers, staff, and compliance.
         </p>
         <nav
-          className="mt-6 flex gap-1 overflow-x-auto border-b border-border"
+          className="-mx-1 mt-6 flex gap-1 overflow-x-auto border-b border-border px-1"
           aria-label="People sections"
         >
           {links

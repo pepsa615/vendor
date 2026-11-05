@@ -4,6 +4,7 @@ import {
   CircleDollarSign,
   Gauge,
   LogOut,
+  Menu,
   PackageCheck,
   Settings,
   Truck,
@@ -38,6 +39,11 @@ const AlertDialog = lazy(() =>
 const Dropdown = lazy(() =>
   import("../components/ui/Dropdown.tsx").then((module) => ({
     default: module.Dropdown,
+  })),
+);
+const Drawer = lazy(() =>
+  import("../components/ui/Drawer.tsx").then((module) => ({
+    default: module.Drawer,
   })),
 );
 
@@ -80,8 +86,20 @@ export function AppLayout() {
   const activeGroup = visible.find(
     (item) => item.children && pathname.startsWith(item.href),
   )?.label;
+  const locationKey = `${pathname}${search}`;
   const [expanded, setExpanded] = useState<string | null>(activeGroup ?? null);
+  const [trackedActiveGroup, setTrackedActiveGroup] = useState(activeGroup);
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [trackedLocation, setTrackedLocation] = useState(locationKey);
+  if (activeGroup !== trackedActiveGroup) {
+    setTrackedActiveGroup(activeGroup);
+    if (activeGroup) setExpanded(activeGroup);
+  }
+  if (locationKey !== trackedLocation) {
+    setTrackedLocation(locationKey);
+    if (mobileNavOpen) setMobileNavOpen(false);
+  }
   const businessName =
     profile.data?.businessName ?? session?.vendor.businessName ?? "Pepsa";
   const logoUrl = profile.data?.logoUrl ?? undefined;
@@ -94,15 +112,71 @@ export function AppLayout() {
           : "Dispatch Activities"
         : (activeGroup ?? "Pepsa Vendor");
 
+  const brandBlock = (
+    <a className="flex items-center gap-3 px-3" href="/dashboard">
+      <Avatar
+        src={logoUrl}
+        name={businessName}
+        size="lg"
+        className="size-14 shrink-0 border border-brand-100 bg-white text-xl font-black text-brand shadow-md"
+      />
+      <span className="min-w-0">
+        <span className="block truncate text-xl font-bold text-foreground">
+          {businessName}
+        </span>
+        <span className="block text-sm text-neutral-400">Express</span>
+      </span>
+    </a>
+  );
+
+  const sidebarNav = (
+    <SidebarNav
+      items={visible}
+      expanded={expanded}
+      onExpand={setExpanded}
+      hasPermission={hasPermission}
+      pathname={pathname}
+      onNavigate={() => setMobileNavOpen(false)}
+    />
+  );
+
+  const logoutButton = (
+    <Button
+      className="w-full justify-start bg-brand-50 text-brand hover:bg-brand-100"
+      variant="ghost"
+      onClick={() => {
+        setMobileNavOpen(false);
+        setLogoutOpen(true);
+      }}
+    >
+      <LogOut className="size-5" />
+      Logout
+    </Button>
+  );
+
   return (
-    <div className="min-h-screen bg-surface text-foreground">
-      <header className="sticky top-0 z-40 flex h-[76px] items-center justify-between bg-[#b40009] px-5 text-white shadow-lg shadow-brand-900/10 lg:px-12">
-        <img
-          src="/pepsa-wordmark.svg"
-          alt="Pepsa"
-          className="w-28 brightness-0 invert"
-        />
-        <div className="flex items-center gap-3">
+    <div className="min-h-screen overflow-x-clip bg-surface text-foreground">
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-3 bg-[#b40009] px-3 text-white shadow-lg shadow-brand-900/10 sm:h-[76px] sm:px-5 lg:px-12">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <Button
+            variant="ghost"
+            iconOnly
+            size="sm"
+            type="button"
+            aria-label="Open navigation menu"
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen(true)}
+            className="shrink-0 text-white hover:bg-white/10 lg:hidden"
+          >
+            <Menu className="size-5" />
+          </Button>
+          <img
+            src="/pepsa-wordmark.svg"
+            alt="Pepsa"
+            className="w-20 shrink-0 brightness-0 invert sm:w-28"
+          />
+        </div>
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <HeaderTools />
           <Suspense
             fallback={
@@ -148,96 +222,37 @@ export function AppLayout() {
         </div>
       </header>
       <div className="lg:grid lg:grid-cols-[246px_1fr]">
-        <aside className="flex border-b border-border bg-panel px-4 py-4 lg:sticky lg:top-[76px] lg:h-[calc(100vh-76px)] lg:flex-col lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
-          <a className="flex items-center gap-3 px-3" href="/dashboard">
-            <Avatar
-              src={logoUrl}
-              name={businessName}
-              size="lg"
-              className="size-14 border border-brand-100 bg-white text-xl font-black text-brand shadow-md"
-            />
-            <span className="min-w-0">
-              <span className="block truncate text-xl font-bold text-foreground">
-                {businessName}
-              </span>
-              <span className="block text-sm text-neutral-400">Express</span>
-            </span>
-          </a>
-
-          <nav
-            className="ml-4 flex gap-2 overflow-x-auto lg:ml-0 lg:mt-10 lg:flex-1 lg:flex-col lg:gap-2 lg:overflow-y-auto"
-            aria-label="Primary navigation"
-          >
-            {visible.map((item) => {
-              const Icon = icons[item.label as keyof typeof icons] ?? Settings;
-              const children = visibleChildren(item, hasPermission);
-              const groupActive =
-                pathname === item.href ||
-                Boolean(item.children && pathname.startsWith(`${item.href}/`));
-              const isOpen = expanded === item.label;
-
-              if (!children?.length) {
-                return (
-                  <NavLink
-                    key={item.href}
-                    to={item.href}
-                    className={({ isActive }) =>
-                      `flex min-h-10 items-center gap-3 whitespace-nowrap rounded-md px-3 text-sm ${isActive ? "bg-brand-50 font-medium text-brand" : "text-neutral-400 hover:bg-neutral-50 hover:text-foreground"}`
-                    }
-                  >
-                    <Icon className="size-5" strokeWidth={1.7} />
-                    <span>{item.label}</span>
-                  </NavLink>
-                );
-              }
-
-              return (
-                <div key={item.href}>
-                  <Button
-                    variant="ghost"
-                    type="button"
-                    aria-expanded={isOpen}
-                    onClick={() => setExpanded(isOpen ? null : item.label)}
-                    className={`flex min-h-10 w-full justify-start gap-3 rounded-md border-0 px-3 text-left text-sm font-normal shadow-none ${groupActive || isOpen ? "bg-brand-50 font-medium text-brand" : "text-neutral-400 hover:bg-neutral-50 hover:text-foreground"}`}
-                  >
-                    <Icon className="size-5" strokeWidth={1.7} />
-                    <span className="flex-1">{item.label}</span>
-                    {isOpen ? (
-                      <ChevronDown className="size-4 rounded-full bg-brand-100 p-0.5" />
-                    ) : (
-                      <ChevronRight className="size-4 rounded-full bg-neutral-200 p-0.5" />
-                    )}
-                  </Button>
-                  {isOpen && (
-                    <div className="mt-2 grid gap-1 pl-12">
-                      {children.map((child) => (
-                        <SubmenuLink key={child.href} item={child} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </nav>
-
-          <Button
-            className="ml-auto min-w-44 justify-start bg-brand-50 text-brand hover:bg-brand-100 lg:ml-3 lg:mt-6 lg:w-[calc(100%-1.5rem)]"
-            variant="ghost"
-            onClick={() => setLogoutOpen(true)}
-          >
-            <LogOut className="size-5" />
-            Logout
-          </Button>
+        <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] flex-col border-r border-border bg-panel px-5 py-6 sm:top-[76px] sm:h-[calc(100vh-76px)] lg:flex">
+          {brandBlock}
+          <div className="mt-10 flex min-h-0 flex-1 flex-col">
+            {sidebarNav}
+          </div>
+          <div className="mt-6 px-3">{logoutButton}</div>
         </aside>
         <div className="min-w-0">
-          <div className="flex h-[62px] items-center border-b border-brand-100 bg-panel px-5 text-lg font-semibold lg:px-7">
-            {pageTitle}
+          <div className="flex min-h-12 items-center border-b border-brand-100 bg-panel px-4 text-base font-semibold sm:min-h-[62px] sm:px-5 sm:text-lg lg:px-7">
+            <span className="truncate">{pageTitle}</span>
           </div>
-          <main className="mx-auto max-w-[1280px] p-4 sm:p-5 lg:p-7">
+          <main className="mx-auto max-w-[1280px] p-3 sm:p-5 lg:p-7">
             <Outlet />
           </main>
         </div>
       </div>
+      <Suspense>
+        <Drawer
+          isOpen={mobileNavOpen}
+          onOpenChange={setMobileNavOpen}
+          title={businessName}
+          description="Express"
+          side="left"
+          size="sm"
+        >
+          <div className="flex min-h-0 flex-1 flex-col gap-6">
+            <div className="min-h-0 flex-1 overflow-y-auto">{sidebarNav}</div>
+            <div className="border-t border-border pt-4">{logoutButton}</div>
+          </div>
+        </Drawer>
+      </Suspense>
       <Suspense>
         <AlertDialog
           isOpen={logoutOpen}
@@ -254,12 +269,98 @@ export function AppLayout() {
   );
 }
 
-function SubmenuLink({ item }: { item: NavigationItem }) {
+function SidebarNav({
+  items,
+  expanded,
+  onExpand,
+  hasPermission,
+  pathname,
+  onNavigate,
+}: {
+  items: readonly NavigationGroup[];
+  expanded: string | null;
+  onExpand: (label: string | null) => void;
+  hasPermission: (permission: string) => boolean;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <nav
+      className="flex flex-col gap-2 overflow-y-auto"
+      aria-label="Primary navigation"
+    >
+      {items.map((item) => {
+        const Icon = icons[item.label as keyof typeof icons] ?? Settings;
+        const children = visibleChildren(item, hasPermission);
+        const groupActive =
+          pathname === item.href ||
+          Boolean(item.children && pathname.startsWith(`${item.href}/`));
+        const isOpen = expanded === item.label;
+
+        if (!children?.length) {
+          return (
+            <NavLink
+              key={item.href}
+              to={item.href}
+              onClick={onNavigate}
+              className={({ isActive }) =>
+                `flex min-h-10 items-center gap-3 rounded-md px-3 text-sm ${isActive ? "bg-brand-50 font-medium text-brand" : "text-neutral-400 hover:bg-neutral-50 hover:text-foreground"}`
+              }
+            >
+              <Icon className="size-5 shrink-0" strokeWidth={1.7} />
+              <span>{item.label}</span>
+            </NavLink>
+          );
+        }
+
+        return (
+          <div key={item.href}>
+            <Button
+              variant="ghost"
+              type="button"
+              aria-expanded={isOpen}
+              onClick={() => onExpand(isOpen ? null : item.label)}
+              className={`flex min-h-10 w-full justify-start gap-3 rounded-md border-0 px-3 text-left text-sm font-normal shadow-none ${groupActive || isOpen ? "bg-brand-50 font-medium text-brand" : "text-neutral-400 hover:bg-neutral-50 hover:text-foreground"}`}
+            >
+              <Icon className="size-5 shrink-0" strokeWidth={1.7} />
+              <span className="flex-1">{item.label}</span>
+              {isOpen ? (
+                <ChevronDown className="size-4 shrink-0 rounded-full bg-brand-100 p-0.5" />
+              ) : (
+                <ChevronRight className="size-4 shrink-0 rounded-full bg-neutral-200 p-0.5" />
+              )}
+            </Button>
+            {isOpen && (
+              <div className="mt-2 grid gap-1 pl-10 sm:pl-12">
+                {children.map((child) => (
+                  <SubmenuLink
+                    key={child.href}
+                    item={child}
+                    onNavigate={onNavigate}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </nav>
+  );
+}
+
+function SubmenuLink({
+  item,
+  onNavigate,
+}: {
+  item: NavigationItem;
+  onNavigate?: () => void;
+}) {
   const { pathname, search } = useLocation();
   const isActive = `${pathname}${search}` === item.href;
   return (
     <Link
       to={item.href}
+      onClick={onNavigate}
       className={`rounded px-1 py-1.5 text-sm ${isActive ? "font-medium text-brand" : "text-neutral-400 hover:text-foreground"}`}
     >
       {item.label}

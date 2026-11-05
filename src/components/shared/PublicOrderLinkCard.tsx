@@ -57,8 +57,13 @@ export function PublicOrderLinkCard({
             {url}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm" disabled={disabled} onClick={() => void copy()}>
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap">
+          <Button
+            className="col-span-2 sm:col-auto"
+            size="sm"
+            disabled={disabled}
+            onClick={() => void copy()}
+          >
             {copied ? (
               <Check className="size-4" />
             ) : (

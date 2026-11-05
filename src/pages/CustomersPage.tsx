@@ -32,19 +32,19 @@ export default function CustomersPage() {
   });
   return (
     <section>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h2 className="text-xl font-bold">Customers</h2>
           <p className="mt-1 text-sm text-muted">
             Saved contacts available to future order workflows.
           </p>
         </div>
-        <Button onClick={() => setOpen(true)}>
+        <Button className="w-full sm:w-auto" onClick={() => setOpen(true)}>
           <Plus className="size-4" /> Create customer
         </Button>
       </div>
       <SearchInput
-        className="mt-6 max-w-xl"
+        className="mt-6 w-full max-w-xl"
         value={search}
         onChange={setSearch}
         placeholder="Search customers"
@@ -52,7 +52,7 @@ export default function CustomersPage() {
       {query.isLoading ? (
         <Skeleton className="mt-5 h-64" />
       ) : (
-        <div className="mt-5 overflow-x-auto">
+        <div className="mt-5 min-w-0">
           <Table>
             <THead>
               <Tr>

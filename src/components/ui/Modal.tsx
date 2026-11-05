@@ -72,7 +72,7 @@ export function Modal({
                 {children}
               </div>
               {footer && (
-                <footer className="flex shrink-0 justify-end gap-2 border-t border-border bg-panel p-4">
+                <footer className="flex shrink-0 flex-col-reverse gap-2 border-t border-border bg-panel p-4 sm:flex-row sm:justify-end">
                   {footer}
                 </footer>
               )}

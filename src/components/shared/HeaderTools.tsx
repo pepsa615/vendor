@@ -55,8 +55,8 @@ export function HeaderTools() {
     ([, items]) => items.length,
   );
   return (
-    <div className="flex items-center gap-3">
-      <div className="relative hidden w-72 md:block">
+    <div className="flex items-center gap-1.5 sm:gap-3">
+      <div className="relative hidden w-56 lg:block lg:w-72">
         <SearchInput
           value={search}
           onChange={setSearch}
@@ -97,7 +97,7 @@ export function HeaderTools() {
         )}
       </div>
       {mobileSearchOpen && (
-        <div className="fixed inset-x-3 top-20 z-50 rounded-xl border border-border bg-panel p-3 text-foreground shadow-overlay md:hidden">
+        <div className="fixed inset-x-3 top-16 z-50 rounded-xl border border-border bg-panel p-3 text-foreground shadow-overlay sm:top-20 lg:hidden">
           <SearchInput
             autoFocus
             value={search}
@@ -141,7 +141,7 @@ export function HeaderTools() {
         </div>
       )}
       <span
-        className="grid size-9 place-items-center rounded-full bg-white text-brand"
+        className="hidden size-9 place-items-center rounded-full bg-white text-brand sm:grid"
         aria-label="Messages"
       >
         <Mail className="size-5" />
@@ -165,8 +165,8 @@ export function HeaderTools() {
           )}
         </Button>
         {notificationsOpen && (
-          <div className="absolute right-0 top-12 z-50 w-96 overflow-hidden rounded-xl border border-border bg-panel text-foreground shadow-overlay">
-            <div className="flex items-center justify-between bg-brand-50 px-4 py-3">
+          <div className="absolute right-0 top-12 z-50 w-[min(24rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-border bg-panel text-foreground shadow-overlay">
+            <div className="flex flex-wrap items-center justify-between gap-2 bg-brand-50 px-4 py-3">
               <h2 className="font-bold italic">
                 Notifications ({notices.data?.unread ?? 0})
               </h2>
@@ -180,7 +180,7 @@ export function HeaderTools() {
                 </Button>
               )}
             </div>
-            <div className="max-h-96 overflow-auto p-3">
+            <div className="max-h-[min(24rem,60vh)] overflow-auto p-3">
               {notices.data?.items.length ? (
                 notices.data.items.map((notice) => (
                   <Button
@@ -190,9 +190,10 @@ export function HeaderTools() {
                     onClick={() => {
                       if (!notice.readAt) mark.mutate(notice.id);
                       if (notice.href) navigate(notice.href);
+                      setNotificationsOpen(false);
                     }}
                   >
-                    <span className="flex items-center gap-2 font-semibold">
+                    <span className="flex flex-wrap items-center gap-2 font-semibold">
                       {!notice.readAt && <Badge tone="danger">New</Badge>}
                       {notice.title}
                     </span>
@@ -221,7 +222,7 @@ export function HeaderTools() {
         aria-label="Global search"
         aria-expanded={mobileSearchOpen}
         onClick={() => setMobileSearchOpen((open) => !open)}
-        className="text-white hover:bg-white/10 md:hidden"
+        className="text-white hover:bg-white/10 lg:hidden"
       >
         <Search className="size-5" />
       </Button>
