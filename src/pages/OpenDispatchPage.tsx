@@ -1050,12 +1050,45 @@ function AssignmentPanel({
                       </div>
                     </>
                   ) : (
-                    <div className="flex justify-between">
-                      <span>Funding reserved</span>
-                      <strong>
-                        {money(preview.fundingRequiredMinor, preview.currency)}
-                      </strong>
-                    </div>
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted">Distance fare</span>
+                        <strong>
+                          {money(
+                            preview.fundingRequiredMinor,
+                            preview.currency,
+                          )}
+                        </strong>
+                      </div>
+                      <div className="mt-2 flex justify-between text-sm">
+                        <span className="text-muted">Pepsa cut</span>
+                        <strong>
+                          {money(preview.feeAmountMinor, preview.currency)}
+                        </strong>
+                      </div>
+                      <div className="mt-2 flex justify-between text-sm">
+                        <span className="text-muted">Rider earnings</span>
+                        <strong>
+                          {money(
+                            Math.max(
+                              0,
+                              preview.fundingRequiredMinor -
+                                preview.feeAmountMinor,
+                            ),
+                            preview.currency,
+                          )}
+                        </strong>
+                      </div>
+                      <div className="mt-3 flex justify-between border-t border-border pt-3">
+                        <span>Funding reserved</span>
+                        <strong>
+                          {money(
+                            preview.fundingRequiredMinor,
+                            preview.currency,
+                          )}
+                        </strong>
+                      </div>
+                    </>
                   )}
                 </div>
                 <div className="flex justify-end gap-2">
