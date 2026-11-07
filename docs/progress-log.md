@@ -203,3 +203,8 @@ Append entries; never rewrite historical evidence.
 - Removed Account-page Wallet/Settlement toggles while preserving sidebar/query routes and permissions.
 - Added independent searchable sender/receiver autofill, explicit new-contact controls and optional save-to-customers choices.
 - Pricing boundaries are displayed as half-open ranges with the final maximum inclusive; tier starts are derived and read-only.
+
+## 2026-11-07 — Pepsa transfer recipient validation repair
+
+- Expanded Pepsa rail discovery to recognize the provider bank-list name `9 Payment Service Bank` as well as the abbreviated 9PSB names. This restores the internal bank code required to enable Continue after a valid account number is entered.
+- Added regression coverage for the supported Pepsa/9PSB names and for excluding unrelated payment service banks. All 9 frontend unit-test files (19 tests) and TypeScript passed.
