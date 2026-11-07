@@ -8,5 +8,5 @@ export function bankLogoUrl(bank: Pick<Bank, "code" | "name">): string {
 }
 
 export function isPepsaRailBank(bank: Pick<Bank, "code" | "name">): boolean {
-  return /9\s*psb|pepsa|hope\s*psb/i.test(bank.name);
+  return /9\s*(?:psb|payment\s+service\s+bank)|pepsa/i.test(bank.name);
 }
