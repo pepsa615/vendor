@@ -43,11 +43,51 @@ export interface VendorOrder {
   receiver: { name: string; phone: string; email?: string };
   pickup: OrderLocationRecord;
   delivery: OrderLocationRecord;
+  deliveryStatus: string;
   checkout?: CheckoutDetails;
   batchItem?: { batchId: string } | null;
   manifestItems?: Array<{ id: string }>;
-  dispatchItems?: Array<{ dispatchId: string }>;
+  dispatchItems?: Array<{
+    dispatchId: string;
+    dispatch?: {
+      id: string;
+      status: string;
+      publicReference: string;
+      mode: string;
+    };
+  }>;
   createdAt: string;
+}
+
+/** M5 fulfilment projected onto order.deliveryStatus (not VendorOrderStatus). */
+export const ORDER_FULFILLMENT_STATUSES = [
+  "PENDING_MATCH",
+  "PAIRED",
+  "PICKED_UP",
+  "DELIVERED",
+  "COMPLETED",
+  "CANCELLED",
+] as const;
+
+export function displayOrderStatus(order: VendorOrder): string {
+  const linked = order.dispatchItems?.[0]?.dispatch?.status;
+  if (linked) return linked;
+  if (
+    (ORDER_FULFILLMENT_STATUSES as readonly string[]).includes(
+      order.deliveryStatus,
+    )
+  )
+    return order.deliveryStatus;
+  return order.status;
+}
+
+export function isOrderOnDispatch(order: VendorOrder): boolean {
+  return Boolean(
+    order.dispatchItems?.length ||
+      (ORDER_FULFILLMENT_STATUSES as readonly string[]).includes(
+        order.deliveryStatus,
+      ),
+  );
 }
 export interface OrderListResponse {
   items: VendorOrder[];
