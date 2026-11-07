@@ -23,10 +23,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { apiDownload, apiRequest } from "../api/client.ts";
-import {
-  BankLogo,
-  PepsaRailLogo,
-} from "../components/account/BankLogo.tsx";
+import { BankLogo, PepsaRailLogo } from "../components/account/BankLogo.tsx";
 import {
   Alert,
   Badge,
@@ -613,18 +610,22 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
     item.name.toLowerCase().includes(bankSearch.trim().toLowerCase()),
   );
 
-  const enquiryBankCode =
-    scope === "internal" ? (pepsaBank?.code ?? "") : bank;
+  const enquiryBankCode = scope === "internal" ? (pepsaBank?.code ?? "") : bank;
 
   const resolveName = useMutation({
     mutationFn: () =>
-      apiRequest<EnquiryResult>("/account/account-enquiry", {
-        method: "POST",
-        body: JSON.stringify({
-          accountNumber: account,
-          bankCode: enquiryBankCode,
-        }),
-      }),
+      apiRequest<EnquiryResult>(
+        scope === "internal"
+          ? "/account/internal-account-enquiry"
+          : "/account/account-enquiry",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            accountNumber: account,
+            ...(scope === "external" ? { bankCode: enquiryBankCode } : {}),
+          }),
+        },
+      ),
     onSuccess: (data) => {
       setEnquiry(data);
       setEnquiryError("");
@@ -679,9 +680,7 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
   const amountValue = Number(amount);
   const amountOk = Number.isFinite(amountValue) && amountValue > 0;
   const accountOk = /^\d{10,20}$/.test(account.trim());
-  const canResolve =
-    accountOk &&
-    (scope === "internal" ? Boolean(pepsaBank?.code) : Boolean(bank));
+  const canResolve = accountOk && (scope === "internal" || Boolean(bank));
 
   const title =
     step === "rail"
@@ -746,7 +745,7 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
             </span>
             <ChevronRight className="size-4 text-muted" />
           </button>
-          </div>
+        </div>
       )}
 
       {step === "recipient" && (
@@ -766,7 +765,7 @@ function TransferModal({ open, close }: { open: boolean; close: () => void }) {
                   <span className="flex min-w-0 items-center gap-3">
                     <BankLogo bank={selectedBank} size={36} />
                     <span className="truncate text-sm font-semibold">
-                    {selectedBank.name}
+                      {selectedBank.name}
                     </span>
                   </span>
                   <Button

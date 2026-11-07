@@ -208,3 +208,8 @@ Append entries; never rewrite historical evidence.
 
 - Expanded Pepsa rail discovery to recognize the provider bank-list name `9 Payment Service Bank` as well as the abbreviated 9PSB names. This restores the internal bank code required to enable Continue after a valid account number is entered.
 - Added regression coverage for the supported Pepsa/9PSB names and for excluding unrelated payment service banks. All 9 frontend unit-test files (19 tests) and TypeScript passed.
+
+## 2026-11-07 — Pepsa transfer no longer depends on 9PSB enquiry
+
+- Routed Pepsa-to-Pepsa recipient validation to the new internal account-enquiry endpoint and removed the provider bank-list dependency from the Continue button. External-bank validation still uses 9PSB.
+- Regenerated the OpenAPI client. Frontend typecheck, contract validation, production build, and bundle budget passed; the staging static bundle was published successfully.
