@@ -1416,6 +1416,25 @@
         ]
       }
     },
+    "/api/v1/account/internal-account-enquiry": {
+      "post": {
+        "operationId": "AccountController_internalEnquiry_v1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Account"
+        ]
+      }
+    },
     "/api/v1/account/transfers": {
       "post": {
         "operationId": "AccountController_transfer_v1",
