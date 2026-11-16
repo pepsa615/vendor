@@ -82,6 +82,9 @@ export default function RegistrationPage() {
                 password,
                 firstName: words[0] || "Vendor",
                 lastName: words.slice(1).join(" ") || "Owner",
+                termsAccepted: data.get("terms") === "on",
+                privacyAccepted: data.get("privacy") === "on",
+                indemnityAccepted: data.get("indemnity") === "on",
               }),
             });
             sessionStorage.setItem(
@@ -141,27 +144,9 @@ export default function RegistrationPage() {
             required
           />
         </FormField>
-        <Checkbox
-          name="terms"
-          isRequired
-          className="items-start text-xs text-muted"
-        >
-          <span>
-            I agree to{" "}
-            <Link className="text-sky-500" to="/terms">
-              Terms &amp; Conditions
-            </Link>
-            ,{" "}
-            <Link className="text-sky-500" to="/privacy">
-              Privacy Policy
-            </Link>{" "}
-            and{" "}
-            <Link className="text-sky-500" to="/identity-terms">
-              Indemnity Terms
-            </Link>
-            .
-          </span>
-        </Checkbox>
+        <Checkbox name="terms" isRequired className="items-start text-xs text-muted">I agree to the <Link className="text-sky-500" to="/terms">Terms &amp; Conditions</Link>.</Checkbox>
+        <Checkbox name="privacy" isRequired className="items-start text-xs text-muted">I agree to the <Link className="text-sky-500" to="/privacy">Privacy Policy</Link>.</Checkbox>
+        <Checkbox name="indemnity" isRequired className="items-start text-xs text-muted">I agree to the <Link className="text-sky-500" to="/indemnity">Indemnity Agreement</Link>.</Checkbox>
         <Button className="mx-auto mt-5 w-72" loading={loading}>
           Continue
         </Button>
