@@ -213,3 +213,6 @@ Append entries; never rewrite historical evidence.
 
 - Routed Pepsa-to-Pepsa recipient validation to the new internal account-enquiry endpoint and removed the provider bank-list dependency from the Continue button. External-bank validation still uses 9PSB.
 - Regenerated the OpenAPI client. Frontend typecheck, contract validation, production build, and bundle budget passed; the staging static bundle was published successfully.
+## 2026-11-16 — Separate legal consent controls
+
+- Replaced the combined registration consent with three independently required reusable checkbox controls linked to the canonical legal pages.
